@@ -4,6 +4,10 @@ export default function MyComponent({ title, description }) {
       ICI
       <h2>{title}</h2>
       <p>{description}</p>
+      <button className="btn btn-primary">
+        Bootstrap OK 🚀
+      </button>
+
     </div>
   );
 }
