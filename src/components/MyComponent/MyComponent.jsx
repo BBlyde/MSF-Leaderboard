@@ -7,7 +7,6 @@ export default function MyComponent({ title, description }) {
       <button className="btn btn-primary">
         Bootstrap OK 🚀
       </button>
-
     </div>
   );
 }
