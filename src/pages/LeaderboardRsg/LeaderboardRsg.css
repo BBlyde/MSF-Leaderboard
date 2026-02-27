@@ -1,0 +1,213 @@
+.info {
+  font-style: italic;
+}
+
+.leaderboard-container {
+  color: #e6edf3;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.leaderboard-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #58a6ff;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+}
+
+.search-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  background-color: #161b22;
+  color: #e6edf3;
+  border: 2px solid #30363d;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #58a6ff;
+  box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+}
+
+.search-input::placeholder {
+  color: #8b949e;
+}
+
+.leaderboard-list {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #161b22;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard-table thead {
+  background: linear-gradient(135deg, #a10d0d, #092668);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-table thead th {
+  padding: 1.2rem;
+  text-align: left;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.leaderboard-table thead th.rank {
+  width: 80px;
+  text-align: center;
+}
+
+.leaderboard-table thead th.score {
+  width: 120px;
+  text-align: right;
+  padding-right: 2rem;
+}
+
+.leaderboard-table thead th.wins {
+  width: 120px;
+  text-align: right;
+  padding-right: 2rem;
+}
+
+.rank-row {
+  border-bottom: 1px solid #30363d;
+  transition: background-color 0.2s ease;
+}
+
+.rank-row:hover {
+  background-color: #21262d;
+}
+
+.leaderboard-table tbody td {
+  padding: 1rem 1.2rem;
+  color: #e6edf3;
+}
+
+.leaderboard-table tbody td.rank {
+  text-align: center;
+  font-weight: 600;
+}
+
+.rank-number {
+  display: inline;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.rank-1 {
+  color: #ffa600;
+}
+
+.rank-2 {
+  color: #858585;
+}
+
+.rank-3 {
+  color: #E77C56;
+}
+
+.leaderboard-table tbody td.player-name {
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: #58a6ff;
+}
+
+.leaderboard-table tbody td.score {
+  text-align: right;
+  padding-right: 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #79c0ff;
+}
+
+.leaderboard-table tbody td.wins {
+  text-align: right;
+  padding-right: 2rem;
+  color: #a371f7;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #58a6ff;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.error {
+  background-color: #da3633;
+  color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #8b949e;
+  font-size: 1.1rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 768px) {
+  .leaderboard-container {
+    padding: 1rem;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .leaderboard-table thead th {
+    padding: 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .leaderboard-table tbody td {
+    padding: 0.8rem;
+  }
+
+  .rank-number {
+    width: 35px;
+    height: 35px;
+    font-size: 0.95rem;
+  }
+}
