@@ -1,13 +1,10 @@
-import MyComponent from '../../components/MyComponent'
-
 function Home() {
   return (
     <div className="vh-100 text-white">
-      <MyComponent title="Bienvenue" description="Ceci est un composant réutilisable" />
-      <div style={{ padding: '2rem' }}>
-        <h2>Bienvenue sur MSF Leaderboard</h2>
-        <p>Découvrez les meilleurs joueurs et leurs scores.</p>
-      </div>
+      MSF Leadarbord -
+      BOUTON RSG BOUTON RANKED
+      Site en cours de construction
+      Pour toute demande d'inclusion dans l'un des deux classements ou de correction d'information, veuillez contacter @blyde_ via Discord.
     </div>
   )
 }

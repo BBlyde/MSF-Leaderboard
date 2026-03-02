@@ -16,9 +16,9 @@
 .leaderboard-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #58a6ff;
+  color: #ff3333;
   margin: 0;
-  text-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+  text-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
 }
 
 .search-container {
@@ -41,8 +41,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #58a6ff;
-  box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+  border-color: #ff3333;
+  box-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
 }
 
 .search-input::placeholder {
@@ -64,7 +64,7 @@
 }
 
 .leaderboard-table thead {
-  background: linear-gradient(135deg, #a10d0d, #092668);
+  background: linear-gradient(90deg, rgba(161, 13, 13, 1) 0%, rgb(27, 0, 0) 75%);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -113,29 +113,33 @@
   font-weight: 600;
 }
 
-.rank-number {
+.leaderboard-table .rank-number {
   display: inline;
   font-weight: 700;
   font-size: 1.1rem;
-  color: #ffffff;
+  color: #ff3333;
 }
 
-.rank-1 {
+.leaderboard-table .rank-1 {
   color: #ffa600;
 }
 
-.rank-2 {
-  color: #858585;
+.leaderboard-table .rank-2 {
+  color: #adadad;
 }
 
-.rank-3 {
+.leaderboard-table .rank-3 {
   color: #E77C56;
 }
 
 .leaderboard-table tbody td.player-name {
   font-weight: 500;
   font-size: 1.05rem;
-  color: #58a6ff;
+  color: #ffffff;
+}
+
+.leaderboard-table tbody td.time {
+  color: #ff3333;
 }
 
 .leaderboard-table tbody td.score {
@@ -143,20 +147,14 @@
   padding-right: 2rem;
   font-weight: 600;
   font-size: 1.1rem;
-  color: #79c0ff;
-}
-
-.leaderboard-table tbody td.wins {
-  text-align: right;
-  padding-right: 2rem;
-  color: #a371f7;
+  color: #ff3333;
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
   font-size: 1.2rem;
-  color: #58a6ff;
+  color: #ff3333;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -179,9 +177,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }

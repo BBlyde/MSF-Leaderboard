@@ -1,12 +1,23 @@
 .header {
   background-color: #1a1a1a;
-  border-bottom: 2px solid #092668;
   padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   font-weight: 700;
+}
+
+.header.header-home {
+  border-bottom: 2px solid #092668;
+}
+
+.header.header-rsg {
+  border-bottom: 2px solid #a10d0d;
+}
+
+.header.header-ranked {
+  border-bottom: 2px solid #86CE34;
 }
 
 .header-container {
@@ -36,11 +47,11 @@
   color: #fff;
   font-size: 1.8rem;
   letter-spacing: 0.5px;
-  font-style: italic;
 }
 
 .header-logo #leaderboard {
     color: #a10d0d;
+    font-style: italic;
 }
 
 .header-nav ul {
@@ -50,6 +61,8 @@
   display: flex;
   gap: 2rem;
 }
+
+
 
 .header-nav a {
   color: #b0b0b0;
@@ -77,6 +90,18 @@
 
 .header-nav a:hover::after {
   width: 100%;
+}
+
+.nav-rsg a::after {
+  background-color: #a10d0d;
+}
+
+.nav-ranked a::after {
+  background-color: #86CE34;
+}
+
+.nav-about a::after {
+  background-color: #ffffff;
 }
 
 @media (max-width: 768px) {

@@ -98,9 +98,14 @@ function LeaderboardRsg() {
                 </thead>
                 <tbody>
                   {filteredPlayers.map((player, index) => (
-                      <tr key={index} className={`rank-row`}>
+                      <tr 
+                        className="rank-row" 
+                        key={player.id || `${player.runner}-${index}`}
+                        onClick={() => window.open(`https://www.speedrun.com/${player.runner}`, '_blank')}
+                        style={{ cursor: 'pointer' }}
+                      >
                       <td className="rank">
-                        <span className={`rank-number rank-${index + 1}`}>{index + 1}</span>
+                        <span className={`rank-number rank-${player.classement}`}>{player.classement}</span>
                       </td>
                       <td className="player-name">{player.runner}</td>
                       <td className="time">{player.temps}</td>
