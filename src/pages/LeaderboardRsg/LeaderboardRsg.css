@@ -99,6 +99,10 @@
   transition: background-color 0.2s ease;
 }
 
+.leaderboard-table tbody tr:last-child {
+  border-bottom: none;
+}
+
 .rank-row:hover {
   background-color: #21262d;
 }

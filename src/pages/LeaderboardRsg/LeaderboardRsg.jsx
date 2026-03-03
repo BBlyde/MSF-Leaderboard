@@ -63,7 +63,7 @@ function LeaderboardRsg() {
   return (
     <div className="leaderboard-container">
       <div className="leaderboard-header">
-        <h1>Classement Any%</h1>
+        <h1>CLASSEMENT ANY%</h1>
         <span className="info">Catégorie RSG 1.16.1</span>
       </div>
 

@@ -6,10 +6,13 @@ function Header() {
   const location = useLocation()
   
   let headerClass = 'header header-home'
+  let leaderboardClass = 'leaderboard-home'
   if (location.pathname === '/rsg') {
     headerClass = 'header header-rsg'
+    leaderboardClass = 'leaderboard-rsg'
   } else if (location.pathname === '/ranked') {
     headerClass = 'header header-ranked'
+    leaderboardClass = 'leaderboard-ranked'
   }
 
   return (
@@ -17,7 +20,7 @@ function Header() {
       <div className="header-container">
         <div className="header-logo">
           <img src={msfLogo} alt="MSF Logo" className="logo-image" />
-          <div><span id="msf">MSF</span><span id="leaderboard">LEADERBOARD</span></div>
+          <div><span id="msf">MSF</span><span id="leaderboard" className={leaderboardClass}>LEADERBOARD</span></div>
         </div>
         <nav className="header-nav">
           <ul>

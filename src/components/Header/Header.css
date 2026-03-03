@@ -49,8 +49,18 @@
   letter-spacing: 0.5px;
 }
 
-.header-logo #leaderboard {
+.header-logo #leaderboard.leaderboard-home {
+    color: #092668;
+    font-style: italic;
+}
+
+.header-logo #leaderboard.leaderboard-rsg {
     color: #a10d0d;
+    font-style: italic;
+}
+
+.header-logo #leaderboard.leaderboard-ranked {
+    color: #86CE34;
     font-style: italic;
 }
 

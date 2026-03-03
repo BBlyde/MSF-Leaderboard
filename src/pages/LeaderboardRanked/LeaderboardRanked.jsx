@@ -71,7 +71,7 @@ function LeaderboardRanked() {
     <div className="leaderboard-ranked">
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1>Classement Ranked</h1>
+          <h1>CLASSEMENT RANKED</h1>
           <span className="info">Top 16 qualifié au MSF Ranked Masters</span>
           <div className="countdown">
             <span className="countdown-text">Fin Saison 10 : <span className="countdown-timer">{timeLeft}</span><span className="countdown-info">2 Juin 2026</span></span>
