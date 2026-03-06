@@ -7,7 +7,7 @@ function Home() {
       <span className="info">Site en cours d'évolution..</span>
       <div className="home-btn-container d-flex flex-wrap justify-content-center">
         <Link to="/rsg" className='home-btn-rsg home-btn'>CLASSEMENT<br />ANY%</Link>
-        <Link to="/ranked" className='home-btn-ranked home-btn'>CLASSEMENT<br />LEADERBOARD</Link>
+        <Link to="/ranked" className='home-btn-ranked home-btn'>CLASSEMENT<br />RANKED</Link>
       </div>
       <div className="home-about home-card">
         <h2 className="card-title">À PROPOS</h2>
