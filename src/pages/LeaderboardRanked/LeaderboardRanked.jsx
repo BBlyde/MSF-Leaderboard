@@ -162,7 +162,7 @@ function LeaderboardRanked() {
                                 style={{ width: '20px', height: '15px' }}
                               />
                             )}
-                            {player.username}
+                            <span className="player-username">{player.username}</span>
                             </span>
                           </td>
                           <td className="score">

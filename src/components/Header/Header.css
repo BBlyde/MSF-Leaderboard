@@ -9,7 +9,7 @@
 }
 
 .header.header-home {
-  border-bottom: 2px solid #0a2669;
+  border-bottom: 2px solid #0f3aa1;
 }
 
 .header.header-rsg {
@@ -50,7 +50,7 @@
 }
 
 .header-logo #leaderboard.leaderboard-home {
-    color: #0a2669;
+    color: #0f3aa1;
     font-style: italic;
 }
 
@@ -92,7 +92,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background-color: #0a2669;
+  background-color: #0f3aa1;
   transition: width 0.3s ease;
 }
 

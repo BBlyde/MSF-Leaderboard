@@ -33,11 +33,11 @@ body,
   font-weight: 700;
   margin: 0;
   background: linear-gradient(90deg,
-    #1f4bb1 0%,
+    #0f3aa1 0%,
     #0e276b 35%,
     #0a2669 50%,
     #18378b 65%,
-    #1f4bb1 100%
+    #0f3aa1 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -124,8 +124,8 @@ body,
   max-width: 640px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 4px solid #0a2669;
-  border-right: 4px solid #0a2669;
+  border-left: 4px solid #0f3aa1;
+  border-right: 4px solid #0f3aa1;
   border-radius: 12px;
   padding: 1.5rem 2rem;
   text-align: left;

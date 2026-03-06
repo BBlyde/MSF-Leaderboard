@@ -8,6 +8,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.player-username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .player-head {
@@ -319,5 +329,19 @@
     width: 35px;
     height: 35px;
     font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-table thead th.rank {
+    width: 45px;
+  }
+
+  .leaderboard-table thead th.wins {
+    width: 90px;
+  }
+
+  .player-head {
+    display: none;
   }
 }

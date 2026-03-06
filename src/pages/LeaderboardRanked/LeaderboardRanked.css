@@ -300,6 +300,16 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.leaderboard-ranked .player-username {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 
 .leaderboard-ranked .loading {
@@ -387,6 +397,24 @@
         width: 35px;
         height: 35px;
         font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-ranked .leaderboard-table thead th.rank {
+        width: 45px;
+    }
+
+    .leaderboard-ranked .leaderboard-table thead th.score {
+        width: 100px;
+    }
+
+    .leaderboard-ranked .player-name-inner img {
+        display: none;
+    }
+
+    .leaderboard-ranked .rank-badge-img {
+        display: none;
     }
 }
 

@@ -122,7 +122,7 @@ function LeaderboardRsg() {
                             alt={player.runner}
                             className="player-head"
                           />
-                          {player.runner}
+                          <span className="player-username">{player.runner}</span>
                         </span>
                       </td>
                       <td className="time">{player.temps}</td>
