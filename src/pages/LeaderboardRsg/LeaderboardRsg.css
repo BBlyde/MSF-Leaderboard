@@ -69,16 +69,16 @@
   margin: 0;
   background: linear-gradient(90deg,
     rgba(161, 13, 13, 1) 0%,
-    rgba(80, 5, 5, 1) 35%,
-    rgb(27, 0, 0) 50%,
-    rgba(80, 5, 5, 1) 65%,
+    rgb(126, 3, 3) 35%,
+    rgb(88, 0, 0) 50%,
+    rgb(126, 3, 3) 65%,
     rgba(161, 13, 13, 1) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: textWave 5s linear infinite;
+  animation: textWave 7s linear infinite;
   text-shadow: none;
 }
 
