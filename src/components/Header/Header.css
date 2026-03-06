@@ -110,10 +110,6 @@
   background-color: #86CE34;
 }
 
-.nav-about a::after {
-  background-color: #ffffff;
-}
-
 @media (max-width: 768px) {
   .header-container {
     flex-direction: column;
@@ -122,9 +118,5 @@
 
   .header-nav ul {
     gap: 1rem;
-  }
-
-  .header-logo h1 {
-    font-size: 1.5rem;
   }
 }

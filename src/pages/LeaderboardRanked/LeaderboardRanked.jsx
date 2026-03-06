@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './LeaderboardRanked.css'
+import coalImg from '../../assets/coal.png'
+import ironImg from '../../assets/iron.png'
+import goldImg from '../../assets/gold.png'
+import emeraldImg from '../../assets/emerald.png'
+import diamondImg from '../../assets/diamond.png'
+import netheriteImg from '../../assets/netherite.png'
 
 function LeaderboardRanked() {
   const [players, setPlayers] = useState([])
@@ -11,6 +17,25 @@ function LeaderboardRanked() {
   const [timeLeft, setTimeLeft] = useState('')
 
   const API_URL = 'https://back.mcsr-game.com/leaderboard'
+
+  const getRankImg = (elo) => {
+    if (elo >= 2000) return { src: netheriteImg, label: 'Netherite' }
+    if (elo >= 1800) return { src: diamondImg,   label: 'Diamond 3' }
+    if (elo >= 1650) return { src: diamondImg,   label: 'Diamond 2' }
+    if (elo >= 1500) return { src: diamondImg,   label: 'Diamond 1' }
+    if (elo >= 1400) return { src: emeraldImg,   label: 'Emerald 3' }
+    if (elo >= 1300) return { src: emeraldImg,   label: 'Emerald 2' }
+    if (elo >= 1200) return { src: emeraldImg,   label: 'Emerald 1' }
+    if (elo >= 1100) return { src: goldImg,      label: 'Gold 3' }
+    if (elo >= 1000) return { src: goldImg,      label: 'Gold 2' }
+    if (elo >= 900)  return { src: goldImg,      label: 'Gold 1' }
+    if (elo >= 800)  return { src: ironImg,      label: 'Iron 3' }
+    if (elo >= 700)  return { src: ironImg,      label: 'Iron 2' }
+    if (elo >= 600)  return { src: ironImg,      label: 'Iron 1' }
+    if (elo >= 500)  return { src: coalImg,      label: 'Coal 3' }
+    if (elo >= 400)  return { src: coalImg,      label: 'Coal 2' }
+    return                  { src: coalImg,      label: 'Coal 1' }
+  }
 
   const countryToFlag = (countryCode) => {
     if (!countryCode) return ''
@@ -58,7 +83,7 @@ function LeaderboardRanked() {
     try {
       setLoading(true)
       const response = await axios.get(API_URL)
-
+      
       setPlayers(response.data)
       setLoading(false)
     } catch (err) {
@@ -74,7 +99,9 @@ function LeaderboardRanked() {
           <h1>CLASSEMENT RANKED</h1>
           <span className="info">Top 16 qualifié au MSF Ranked Masters</span>
           <div className="countdown">
-            <span className="countdown-text">Fin Saison 10 : <span className="countdown-timer">{timeLeft}</span><span className="countdown-info">2 Juin 2026</span></span>
+            <p className="countdown-label">FIN DE SAISON 10</p>
+            <div className="countdown-timer">{timeLeft}</div>
+            <p className="countdown-date">2 Juin 2026</p>
           </div>
         </div>
 
@@ -83,14 +110,21 @@ function LeaderboardRanked() {
 
         {!loading && !error && (
           <>
+            <div className="section-divider" />
             <div className="search-container">
-              <input
-                type="text"
-                placeholder="Rechercher un runner..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
+              <div className="search-wrapper">
+                <input
+                  type="text"
+                  placeholder="Rechercher un runner..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
             </div>
 
             <div className="leaderboard-list">
@@ -111,25 +145,35 @@ function LeaderboardRanked() {
                     {filteredPlayers.map((player, index) => (
                       <>
                         <tr
-                          className="rank-row"
-                          key={player.id || `${player.username}-${index}`}
+                          className={`rank-row${player.placement > 16 ? ' rank-row--unqualified' : ''}`}
+                          key={`${player.id || player.username}-${searchTerm}`}
                           onClick={() => window.open(`https://mcsrranked.com/stats/${player.username}`, '_blank')}
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'pointer', animationDelay: `${index * 30}ms` }}
                         >
                           <td className="rank">
                             <span className={`rank-number rank-${player.placement}`}>{player.placement}</span>
                           </td>
                           <td className="player-name">
+                            <span className="player-name-inner">
                             {player.country && (
                               <img
                                 src={countryToFlag(player.country)}
                                 alt={player.country}
-                                style={{ width: '20px', height: '15px', marginRight: '8px', verticalAlign: 'middle' }}
+                                style={{ width: '20px', height: '15px' }}
                               />
                             )}
                             {player.username}
+                            </span>
                           </td>
-                          <td className="score">{player.elo}</td>
+                          <td className="score">
+                            <div className="score-inner">
+                              <span className="rank-badge-tooltip">
+                                <img src={getRankImg(player.elo).src} alt={getRankImg(player.elo).label} className="rank-badge-img" />
+                                <span className="rank-tooltip-text">{getRankImg(player.elo).label}</span>
+                              </span>
+                              <span className="elo-value">{player.elo}</span>
+                            </div>
+                          </td>
                         </tr>
                         {player.placement === 16 && (
                           <tr className="qualification-threshold">

@@ -1,5 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
+
 .info {
   font-style: italic;
+}
+
+.player-name-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-head {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.sheet-source {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 1.5rem auto 0;
+  max-width: 1000px;
+  font-size: 0.8rem;
+  color: #ffffff40;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sheet-source:hover {
+  color: #0F9D58;
+}
+
+.sheet-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.sheet-source:hover .sheet-icon {
+  opacity: 1;
 }
 
 .leaderboard-container {
@@ -13,12 +58,36 @@
   margin-bottom: 3rem;
 }
 
+@keyframes textWave {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
 .leaderboard-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #ff3333;
   margin: 0;
-  text-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
+  background: linear-gradient(90deg,
+    rgba(161, 13, 13, 1) 0%,
+    rgba(80, 5, 5, 1) 35%,
+    rgb(27, 0, 0) 50%,
+    rgba(80, 5, 5, 1) 65%,
+    rgba(161, 13, 13, 1) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textWave 5s linear infinite;
+  text-shadow: none;
+}
+
+.section-divider {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 20%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.25) 80%, transparent 100%);
+  border-radius: 1px;
 }
 
 .search-container {
@@ -27,9 +96,24 @@
   padding: 0 2rem;
 }
 
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  width: 18px;
+  height: 18px;
+  color: #8b949e;
+  pointer-events: none;
+}
+
 .search-input {
   width: 100%;
-  padding: 1rem;
+  padding: 1rem 2.8rem 1rem 1rem;
   font-size: 1rem;
   font-family: 'Poppins', sans-serif;
   background-color: #161b22;
@@ -41,8 +125,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #ff3333;
-  box-shadow: 0 0 10px rgba(255, 51, 51, 0.3);
+  border-color: #a10d0d;
+  box-shadow: 0 0 10px rgba(161, 13, 13, 0.3);
 }
 
 .search-input::placeholder {
@@ -57,6 +141,7 @@
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   background-color: #161b22;
   border-radius: 8px;
   overflow: hidden;
@@ -82,21 +167,27 @@
   text-align: center;
 }
 
-.leaderboard-table thead th.score {
-  width: 120px;
+.leaderboard-table thead th.wins {
+  width: 150px;
   text-align: right;
-  padding-right: 2rem;
+  padding-right: 1.5rem;
 }
 
-.leaderboard-table thead th.wins {
-  width: 120px;
-  text-align: right;
-  padding-right: 2rem;
+@keyframes fadeInRow {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .rank-row {
   border-bottom: 1px solid #30363d;
   transition: background-color 0.2s ease;
+  animation: fadeInRow 0.25s ease both;
 }
 
 .leaderboard-table tbody tr:last-child {
@@ -110,6 +201,9 @@
 .leaderboard-table tbody td {
   padding: 1rem 1.2rem;
   color: #e6edf3;
+  font-size: 1rem;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .leaderboard-table tbody td.rank {
@@ -117,11 +211,21 @@
   font-weight: 600;
 }
 
+.leaderboard-table tbody td.time {
+  padding: 1rem 1.5rem 1rem 0;
+  text-align: right;
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: #a10d0d;
+  white-space: nowrap;
+}
+
 .leaderboard-table .rank-number {
   display: inline;
-  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
   font-size: 1.1rem;
-  color: #ff3333;
+  color: #a10d0d;
 }
 
 .leaderboard-table .rank-1 {
@@ -140,30 +244,31 @@
   font-weight: 500;
   font-size: 1.05rem;
   color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .leaderboard-table tbody td.time {
-  color: #ff3333;
-}
-
-.leaderboard-table tbody td.score {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #a10d0d;
   text-align: right;
   padding-right: 2rem;
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #ff3333;
+  white-space: nowrap;
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
   font-size: 1.2rem;
-  color: #ff3333;
+  color: #a10d0d;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .error {
-  background-color: #da3633;
+  background-color: #a10d0d;
   color: #ffffff;
   padding: 1.5rem;
   border-radius: 8px;

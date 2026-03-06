@@ -11,7 +11,7 @@ function Home() {
       </div>
       <div className="home-about home-card">
         <h2 className="card-title">À PROPOS</h2>
-        <p>Site Web ayant pour objectif de fournir un classement précis et actualisé des performances des runners francophones en Speedrun Minecraft</p>
+        <p>Le site web MSF a pour objectif de fournir un classement précis et actualisé des performances des runners francophones en Speedrun Minecraft</p>
       </div>
       <div className="home-text home-card">
         <h2 className="card-title contact-title">CONTACT</h2>

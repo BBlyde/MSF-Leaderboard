@@ -72,14 +72,21 @@ function LeaderboardRsg() {
 
       {!loading && !error && (
         <>
+          <div className="section-divider" />
           <div className="search-container">
-            <input
-              type="text"
-              placeholder="Rechercher un runner..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
+            <div className="search-wrapper">
+              <input
+                type="text"
+                placeholder="Rechercher un runner..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
           </div>
 
           <div className="leaderboard-list">
@@ -98,16 +105,26 @@ function LeaderboardRsg() {
                 </thead>
                 <tbody>
                   {filteredPlayers.map((player, index) => (
+                    console.log(player),
                       <tr 
                         className="rank-row" 
-                        key={player.id || `${player.runner}-${index}`}
-                        onClick={() => window.open(`https://www.speedrun.com/${player.runner}`, '_blank')}
-                        style={{ cursor: 'pointer' }}
+                        key={`${player.id || player.runner}-${searchTerm}`}
+                        onClick={() => window.open(`${player.lien}`, '_blank')}
+                        style={{ cursor: 'pointer', animationDelay: `${index * 30}ms` }}
                       >
                       <td className="rank">
                         <span className={`rank-number rank-${player.classement}`}>{player.classement}</span>
                       </td>
-                      <td className="player-name">{player.runner}</td>
+                      <td className="player-name">
+                        <span className="player-name-inner">
+                          <img
+                            src={`https://mc-heads.net/avatar/${player.pseudomc}/24`}
+                            alt={player.runner}
+                            className="player-head"
+                          />
+                          {player.runner}
+                        </span>
+                      </td>
                       <td className="time">{player.temps}</td>
                     </tr>
                   ))}
@@ -115,6 +132,18 @@ function LeaderboardRsg() {
               </table>
             )}
           </div>
+          <a
+            className="sheet-source"
+            href="https://docs.google.com/spreadsheets/d/1Fgn-assiNCTxiGCUALdRX5i3wRrQHbwE7iSisWynj78/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg className="sheet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path fill="#0F9D58" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
+              <path fill="#fff" d="M7 7h4v2H7zm0 4h4v2H7zm0 4h4v2H7zm6-8h4v2h-4zm0 4h4v2h-4zm0 4h4v2h-4z"/>
+            </svg>
+            Basé sur la Google Sheet des sub 15 MSF, merci à Avocat & Lunet
+          </a>
         </>
       )}
     </div>
