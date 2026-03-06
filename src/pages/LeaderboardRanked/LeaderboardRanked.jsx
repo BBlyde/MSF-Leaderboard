@@ -101,7 +101,7 @@ function LeaderboardRanked() {
           <div className="countdown">
             <p className="countdown-label">FIN DE SAISON 10</p>
             <div className="countdown-timer">{timeLeft}</div>
-            <p className="countdown-date">2 Juin 2026</p>
+            <p className="countdown-date">2 Mai 2026</p>
           </div>
         </div>
 
