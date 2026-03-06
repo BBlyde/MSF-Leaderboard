@@ -334,8 +334,8 @@
 
 .leaderboard-ranked .qualification-threshold td {
     padding: 1rem 1.2rem;
-    border-bottom: 2px dashed #0D542B;
     border-top: 2px dashed #0D542B;
+    border-bottom: 2px dashed #0D542B;
 }
 
 .leaderboard-ranked .threshold-line {
