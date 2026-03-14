@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './LeaderboardRanked.css'
-import coalImg from '../../assets/coal.png'
-import ironImg from '../../assets/iron.png'
-import goldImg from '../../assets/gold.png'
-import emeraldImg from '../../assets/emerald.png'
-import diamondImg from '../../assets/diamond.png'
+import coal1Img from '../../assets/coal1.png'
+import coal2Img from '../../assets/coal2.png'
+import coal3Img from '../../assets/coal3.png'
+import iron1Img from '../../assets/iron1.png'
+import iron2Img from '../../assets/iron2.png'
+import iron3Img from '../../assets/iron3.png'
+import gold1Img from '../../assets/gold1.png'
+import gold2Img from '../../assets/gold2.png'
+import gold3Img from '../../assets/gold3.png'
+import emerald1Img from '../../assets/emerald1.png'
+import emerald2Img from '../../assets/emerald2.png'
+import emerald3Img from '../../assets/emerald3.png'
+import diamond1Img from '../../assets/diamond1.png'
+import diamond2Img from '../../assets/diamond2.png'
+import diamond3Img from '../../assets/diamond3.png'
 import netheriteImg from '../../assets/netherite.png'
 
 function LeaderboardRanked() {
@@ -20,21 +30,21 @@ function LeaderboardRanked() {
 
   const getRankImg = (elo) => {
     if (elo >= 2000) return { src: netheriteImg, label: 'Netherite' }
-    if (elo >= 1800) return { src: diamondImg,   label: 'Diamond 3' }
-    if (elo >= 1650) return { src: diamondImg,   label: 'Diamond 2' }
-    if (elo >= 1500) return { src: diamondImg,   label: 'Diamond 1' }
-    if (elo >= 1400) return { src: emeraldImg,   label: 'Emerald 3' }
-    if (elo >= 1300) return { src: emeraldImg,   label: 'Emerald 2' }
-    if (elo >= 1200) return { src: emeraldImg,   label: 'Emerald 1' }
-    if (elo >= 1100) return { src: goldImg,      label: 'Gold 3' }
-    if (elo >= 1000) return { src: goldImg,      label: 'Gold 2' }
-    if (elo >= 900)  return { src: goldImg,      label: 'Gold 1' }
-    if (elo >= 800)  return { src: ironImg,      label: 'Iron 3' }
-    if (elo >= 700)  return { src: ironImg,      label: 'Iron 2' }
-    if (elo >= 600)  return { src: ironImg,      label: 'Iron 1' }
-    if (elo >= 500)  return { src: coalImg,      label: 'Coal 3' }
-    if (elo >= 400)  return { src: coalImg,      label: 'Coal 2' }
-    return                  { src: coalImg,      label: 'Coal 1' }
+    if (elo >= 1800) return { src: diamond3Img,   label: 'Diamond 3' }
+    if (elo >= 1650) return { src: diamond2Img,   label: 'Diamond 2' }
+    if (elo >= 1500) return { src: diamond1Img,   label: 'Diamond 1' }
+    if (elo >= 1400) return { src: emerald3Img,   label: 'Emerald 3' }
+    if (elo >= 1300) return { src: emerald2Img,   label: 'Emerald 2' }
+    if (elo >= 1200) return { src: emerald1Img,   label: 'Emerald 1' }
+    if (elo >= 1100) return { src: gold3Img,      label: 'Gold 3' }
+    if (elo >= 1000) return { src: gold2Img,      label: 'Gold 2' }
+    if (elo >= 900)  return { src: gold1Img,      label: 'Gold 1' }
+    if (elo >= 800)  return { src: iron3Img,      label: 'Iron 3' }
+    if (elo >= 700)  return { src: iron2Img,      label: 'Iron 2' }
+    if (elo >= 600)  return { src: iron1Img,      label: 'Iron 1' }
+    if (elo >= 500)  return { src: coal3Img,      label: 'Coal 3' }
+    if (elo >= 400)  return { src: coal2Img,      label: 'Coal 2' }
+                  return { src: coal1Img,      label: 'Coal 1' }
   }
 
   const countryToFlag = (countryCode) => {
