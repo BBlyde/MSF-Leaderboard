@@ -97,7 +97,7 @@ function LeaderboardRanked() {
       setPlayers(response.data)
       setLoading(false)
     } catch (err) {
-      setError('Erreur de récupération du classement')
+      setError("Erreur de récupération du classement<br>c'est la faute de phili..")
       setLoading(false)
     }
   }
