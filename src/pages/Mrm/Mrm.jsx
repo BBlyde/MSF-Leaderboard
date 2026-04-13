@@ -1,0 +1,234 @@
+import './Mrm.css'
+import groupe1 from './groupe1.json'
+import groupe2 from './groupe2.json'
+
+function Mrm() {
+  return (
+    <div className="d-flex flex-column align-items-center text-white mrm-container">
+      <div className="mrm-header">
+        <div className="mrm-title-row">
+          <span className="mrm-title">MSF RANKED MASTERS </span><span className='mrm-season'>S10</span>
+        </div>
+        <span className="mrm-subtitle">Résultats & explication du format</span>
+      </div>
+
+      <div className="section-divider" />
+
+      <div className="container">
+        <div className="container-first">
+          <div className="mrm-playoffs">
+            <h2 className="playoffs-title">PLAYOFFS</h2>
+            <div className="bracket">
+              <div className="bracket-labels">
+                <div className="round-label">DEMI-FINALE 1</div>
+                <div className="round-label-spacer" />
+                <div className="round-label">FINALE</div>
+                <div className="round-label-spacer" />
+                <div className="round-label">DEMI-FINALE 2</div>
+              </div>
+              <div className="bracket-matches">
+                <div className="match">
+                  <div className="player tbd">TBD</div>
+                  <div className="player tbd">TBD</div>
+                </div>
+                <div className="connector connector-left" />
+                <div className="match match-final">
+                  <div className="player tbd">TBD</div>
+                  <div className="player tbd">TBD</div>
+                </div>
+                <div className="connector connector-right" />
+                <div className="match">
+                  <div className="player tbd">TBD</div>
+                  <div className="player tbd">TBD</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mrm-podium">
+            <h2 className="playoffs-title">PODIUM</h2>
+            <div className="podium-wrapper">
+              <div className="podium-player podium-second">
+                <div className="podium-head">
+                  <img src='https://mc-heads.net/avatar/0385/48' className="player-head" />
+                </div>
+                <div className="podium-name">TBD</div>
+                <div className="podium-block podium-block-second">
+                  <span className="podium-rank">2</span>
+                </div>
+              </div>
+              <div className="podium-player podium-first">
+                <div className="podium-head">
+                  <img src='https://mc-heads.net/avatar/0385/48' className="player-head" />
+                </div>
+                <div className="podium-name">TBD</div>
+                <div className="podium-block podium-block-first">
+                  <span className="podium-rank">1</span>
+                </div>
+              </div>
+              <div className="podium-player podium-third">
+                <div className="podium-head">
+                  <img src='https://mc-heads.net/avatar/0385/48' className="player-head" />
+                </div>
+                <div className="podium-name">TBD</div>
+                <div className="podium-block podium-block-third">
+                  <span className="podium-rank">3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="container-second">
+          <div className="mrm-groups">
+            <h2 className="playoffs-title">PHASE DE GROUPES</h2>
+            <div className="groups-wrapper">
+              <div className="group-table">
+                <div className="group-title group-title-1">GROUPE 1</div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="col-rank">#</th>
+                      <th className="col-player">Runner</th>
+                      <th>S1</th>
+                      <th>S2</th>
+                      <th>S3</th>
+                      <th>S4</th>
+                      <th>S5</th>
+                      <th>S6</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupe1.map((player, i) => (
+                      <tr key={i} className={i < 2 ? 'row-qualify' : ''}>
+                        <td className="col-rank">{i + 1}</td>
+                        <td className="col-player">
+                          <img src={`https://mc-heads.net/avatar/${player.uuid}/48`} className="player-head" />
+                          &nbsp;
+                          &nbsp;
+                          {player.name}
+                        </td>
+                        <td>{player.s1}</td>
+                        <td>{player.s2}</td>
+                        <td>{player.s3}</td>
+                        <td>{player.s4}</td>
+                        <td>{player.s5}</td>
+                        <td>{player.s6}</td>
+                        <td className="col-pts">{player.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="group-table">
+                <div className="group-title group-title-2">GROUPE 2</div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="col-rank">#</th>
+                      <th className="col-player">Runner</th>
+                      <th>S1</th>
+                      <th>S2</th>
+                      <th>S3</th>
+                      <th>S4</th>
+                      <th>S5</th>
+                      <th>S6</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupe2.map((player, i) => (
+                      <tr key={i} className={i < 2 ? 'row-qualify' : ''}>
+                        <td className="col-rank">{i + 1}</td>
+                        <td className="col-player">
+                          <img src={`https://mc-heads.net/avatar/${player.uuid}/48`} className="player-head" />
+                          &nbsp;
+                          &nbsp;
+                          {player.name}
+                        </td>
+                        <td>{player.s1}</td>
+                        <td>{player.s2}</td>
+                        <td>{player.s3}</td>
+                        <td>{player.s4}</td>
+                        <td>{player.s5}</td>
+                        <td>{player.s6}</td>
+                        <td className="col-pts">{player.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section-divider" />
+
+        <div className="container-third">
+          <div className="rules-panel">
+            <div className="rules-panel-header">QUALIFICATION</div>
+            <div className="rules-panel-body">
+              <div className="rules-row">
+                <i className="bi bi-bar-chart-fill rules-icon" />
+                <span>La qualification aux MRM s'effectue en finissant parmi les 16 plus hauts élos au <span className="rules-highlight">classement Ranked MSF</span> à la toute fin de la saison de MCSR Ranked</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-people-fill rules-icon" />
+                <span>Les 16 participant·e·s sont alors placé·e·s dans deux groupes de 8 de manière aléatoire, à la suite d'un <span className="rules-highlight">tirage au sort</span> effectué en stream la semaine suivante</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-calendar-event rules-icon" />
+                <span>La phase de groupes se déroulera le samedi <span className="rules-highlight">23/05/2026</span> à la suite des playoffs internationaux, afin de permettre à chacun de pouvoir suivre les deux tournois</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rules-panel">
+            <div className="rules-panel-header">PHASE DE GROUPES</div>
+            <div className="rules-panel-body">
+              <div className="rules-row">
+                <i className="bi bi-calendar-check rules-icon" />
+                <span>Le <span className="rules-highlight">groupe 1</span> commence à jouer le samedi à <span className="rules-highlight">14h</span> (fuseau horaire de Paris) et le <span className="rules-highlight">groupe 2</span> enchaine à <span className="rules-highlight">16h</span> le même jour</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-stopwatch rules-icon" />
+                <span>Chaque groupe consiste en <span className="rules-highlight">6 seeds</span> qui s'enchainent, avec une limite de temps de <span className="rules-highlight">15 minutes par seed</span>, avec une pause de 5 minutes entre les seeds 3 et 4</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-database rules-icon" />
+                <span>Chaque joueur·se accumule des points en fonction de son placement sur chaque seed : <span className="rules-highlight">10-8-6-5-4-3-2-1</span>, et 0 points pour ceux·celles n'étant pas en mesure de finir</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-person-x-fill rules-icon" />
+                <span>Après la 3ème seed, les 2 joueur·se·s ayant accumulé le moins de points seront éliminé·e·s, suivi·e·s de 2 après la seed 4, un·e après la seed 5 et un·e après la 6</span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-check-circle-fill rules-icon" />
+                <span>Les deux participant·e·s restant·e·s de chaque groupe se qualifient pour la phase finale des MRM qui se déroulera le lendemain soit le <span className="rules-highlight">24/05/2026</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rules-panel">
+            <div className="rules-panel-header">PHASE FINALE</div>
+            <div className="rules-panel-body">
+              <div className="rules-row">
+                <i className="bi bi-intersect rules-icon" />
+                <span>Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d'un <span className="rules-highlight">BO5</span> (une seed de chaque type) à partir de <span className="rules-highlight">14h</span></span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-trophy-fill rules-icon" />
+                <span>Les finalistes s'affrontent après une pause de 10 minutes suivant la deuxième demi-finale, lors d'un <span className="rules-highlight">BO7</span> comprenant une seed de chaque type <span className="rules-highlight">+ 1 BT et 1 RP</span> si nécessaire</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+export default Mrm

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './LeaderboardRanked.css'
 import coal1Img from '../../assets/coal1.png'
@@ -30,21 +31,21 @@ function LeaderboardRanked() {
 
   const getRankImg = (elo) => {
     if (elo >= 2000) return { src: netheriteImg, label: 'Netherite' }
-    if (elo >= 1800) return { src: diamond3Img,   label: 'Diamond III' }
-    if (elo >= 1650) return { src: diamond2Img,   label: 'Diamond II' }
-    if (elo >= 1500) return { src: diamond1Img,   label: 'Diamond I' }
-    if (elo >= 1400) return { src: emerald3Img,   label: 'Emerald III' }
-    if (elo >= 1300) return { src: emerald2Img,   label: 'Emerald II' }
-    if (elo >= 1200) return { src: emerald1Img,   label: 'Emerald I' }
-    if (elo >= 1100) return { src: gold3Img,      label: 'Gold III' }
-    if (elo >= 1000) return { src: gold2Img,      label: 'Gold II' }
-    if (elo >= 900)  return { src: gold1Img,      label: 'Gold I' }
-    if (elo >= 800)  return { src: iron3Img,      label: 'Iron III' }
-    if (elo >= 700)  return { src: iron2Img,      label: 'Iron II' }
-    if (elo >= 600)  return { src: iron1Img,      label: 'Iron I' }
-    if (elo >= 500)  return { src: coal3Img,      label: 'Coal III' }
-    if (elo >= 400)  return { src: coal2Img,      label: 'Coal II' }
-                  return { src: coal1Img,      label: 'Coal I' }
+    if (elo >= 1800) return { src: diamond3Img, label: 'Diamond III' }
+    if (elo >= 1650) return { src: diamond2Img, label: 'Diamond II' }
+    if (elo >= 1500) return { src: diamond1Img, label: 'Diamond I' }
+    if (elo >= 1400) return { src: emerald3Img, label: 'Emerald III' }
+    if (elo >= 1300) return { src: emerald2Img, label: 'Emerald II' }
+    if (elo >= 1200) return { src: emerald1Img, label: 'Emerald I' }
+    if (elo >= 1100) return { src: gold3Img, label: 'Gold III' }
+    if (elo >= 1000) return { src: gold2Img, label: 'Gold II' }
+    if (elo >= 900) return { src: gold1Img, label: 'Gold I' }
+    if (elo >= 800) return { src: iron3Img, label: 'Iron III' }
+    if (elo >= 700) return { src: iron2Img, label: 'Iron II' }
+    if (elo >= 600) return { src: iron1Img, label: 'Iron I' }
+    if (elo >= 500) return { src: coal3Img, label: 'Coal III' }
+    if (elo >= 400) return { src: coal2Img, label: 'Coal II' }
+    return { src: coal1Img, label: 'Coal I' }
   }
 
   const countryToFlag = (countryCode) => {
@@ -93,7 +94,7 @@ function LeaderboardRanked() {
     try {
       setLoading(true)
       const response = await axios.get(API_URL)
-      
+
       setPlayers(response.data)
       setLoading(false)
     } catch (err) {
@@ -107,12 +108,15 @@ function LeaderboardRanked() {
       <div className="leaderboard-container">
         <div className="leaderboard-header">
           <h1>CLASSEMENT RANKED</h1>
-          <span className="info">Top 16 qualifié au MSF Ranked Masters</span>
-          <div className="countdown">
-            <p className="countdown-label">FIN DE SAISON 10</p>
-            <div className="countdown-timer">{timeLeft}</div>
-            <p className="countdown-date">2 Mai 2026</p>
-          </div>
+          <span className="info">Top 16 qualifié au <Link to="/mrm" className='info-link'>MSF Ranked Masters</Link></span>
+        </div>
+
+        <div className="section-divider" />
+
+        <div className="countdown">
+          <p className="countdown-label">FIN DE SAISON 10</p>
+          <div className="countdown-timer">{timeLeft}</div>
+          <p className="countdown-date">2 Mai 2026</p>
         </div>
 
         {loading && <div className="loading">Chargement du classement...</div>}
@@ -120,7 +124,6 @@ function LeaderboardRanked() {
 
         {!loading && !error && (
           <>
-            <div className="section-divider" />
             <div className="search-container">
               <div className="search-wrapper">
                 <input
@@ -165,14 +168,14 @@ function LeaderboardRanked() {
                           </td>
                           <td className="player-name">
                             <span className="player-name-inner">
-                            {player.country && (
-                              <img
-                                src={countryToFlag(player.country)}
-                                alt={player.country}
-                                style={{ width: '20px', height: '15px' }}
-                              />
-                            )}
-                            <span className="player-username">{player.username}</span>
+                              {player.country && (
+                                <img
+                                  src={countryToFlag(player.country)}
+                                  alt={player.country}
+                                  style={{ width: '20px', height: '15px' }}
+                                />
+                              )}
+                              <span className="player-username">{player.username}</span>
                             </span>
                           </td>
                           <td className="score">

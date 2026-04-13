@@ -67,12 +67,13 @@ function LeaderboardRsg() {
         <span className="info">Catégorie RSG 1.16.1</span>
       </div>
 
+      <div className="section-divider" />
+      
       {loading && <div className="loading">Chargement du classement...</div>}
       {error && <div className="error">{error}</div>}
 
       {!loading && !error && (
         <>
-          <div className="section-divider" />
           <div className="search-container">
             <div className="search-wrapper">
               <input

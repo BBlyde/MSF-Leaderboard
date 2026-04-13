@@ -1,0 +1,62 @@
+.tournament-container {
+    padding: 2rem;
+}
+
+.tournament-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tournament-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.tournament-title {
+    margin-bottom: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(90deg,
+            #e07b00 0%,
+            rgba(120, 60, 0, 1) 35%,
+            #2a1500 50%,
+            rgba(120, 60, 0, 1) 65%,
+            #e07b00 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textWave 14s linear infinite;
+}
+
+.tournament-season {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffffbe;
+}
+
+.tournament-subtitle {
+    font-style: italic;
+}
+
+.section-divider {
+    width: 100%;
+    max-width: 1000px;
+    margin: 3rem auto;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 20%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.25) 80%, transparent 100%);
+    border-radius: 1px;
+}
+
+@keyframes textWave {
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+}
+
+.tournament-spacer {
+    flex: 1;
+    min-height: 60vh;
+}

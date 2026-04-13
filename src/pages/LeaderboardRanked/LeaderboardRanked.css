@@ -4,12 +4,29 @@
     font-style: italic;
 }
 
+.info-link {
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    color: inherit;
+}
+
+.info-link:visited {
+    color: inherit;
+}
+
+.info-link:hover {
+    color: #86CE34;
+    transition: color 0.3s ease;
+}
+
 .leaderboard-ranked .countdown {
+    width: fit-content;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    margin-top: 2rem;
+    margin: 2rem auto 0;
     padding: 1rem 2rem;
     background: rgba(13, 84, 43, 0.12);
     border: 1px solid rgba(134, 206, 52, 0.25);
@@ -74,16 +91,16 @@
     font-weight: 700;
     margin: 0;
     background: linear-gradient(90deg,
-            rgba(134, 206, 52, 1) 0%,
+            #86CE34 0%,
             rgba(40, 100, 20, 1) 35%,
-            rgba(16, 44, 48, 1) 50%,
+            #102C30 50%,
             rgba(40, 100, 20, 1) 65%,
-            rgba(134, 206, 52, 1) 100%);
+            #86CE34 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: textWave 7s linear infinite;
+    animation: textWave 14s linear infinite;
     text-shadow: none;
 }
 
@@ -154,7 +171,7 @@
 }
 
 .leaderboard-ranked .leaderboard-table thead {
-    background: linear-gradient(90deg, rgba(134, 206, 52, 1) 0%, rgba(16, 44, 48, 1) 75%);
+    background: linear-gradient(90deg, #86CE34 0%, #102C30 75%);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -344,8 +361,8 @@
 
 .leaderboard-ranked .qualification-threshold td {
     padding: 1rem 1.2rem;
-    border-top: 2px dashed #0D542B;
-    border-bottom: 2px dashed #0D542B;
+    border-top: 2px dashed #86CE34;
+    border-bottom: 2px dashed #86CE34;
 }
 
 .leaderboard-ranked .threshold-line {
@@ -356,7 +373,7 @@
 }
 
 .leaderboard-ranked .threshold-text {
-    color: #22c55e;
+    color: #86CE34;
     font-weight: 600;
     font-size: 1rem;
     text-transform: uppercase;
