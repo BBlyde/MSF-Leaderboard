@@ -1,6 +1,7 @@
 import './Mrm.css'
 import groupe1 from './groupe1.json'
 import groupe2 from './groupe2.json'
+import { Link } from 'react-router-dom'
 
 function Mrm() {
   return (
@@ -17,7 +18,7 @@ function Mrm() {
       <div className="container">
         <div className="container-first">
           <div className="mrm-playoffs">
-            <h2 className="playoffs-title">PLAYOFFS</h2>
+            <h2 className="playoffs-title">PHASE FINALE</h2>
             <div className="bracket">
               <div className="bracket-labels">
                 <div className="round-label">DEMI-FINALE 1</div>
@@ -83,7 +84,8 @@ function Mrm() {
           <div className="mrm-groups">
             <h2 className="playoffs-title">PHASE DE GROUPES</h2>
             <div className="groups-wrapper">
-              <div className="group-table">
+              <div className="group-table group-table-1">
+                <div className="group-table-scroll">
                 <div className="group-title group-title-1">GROUPE 1</div>
                 <table>
                   <thead>
@@ -120,9 +122,11 @@ function Mrm() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
 
-              <div className="group-table">
+              <div className="group-table group-table-2">
+                <div className="group-table-scroll">
                 <div className="group-title group-title-2">GROUPE 2</div>
                 <table>
                   <thead>
@@ -159,6 +163,7 @@ function Mrm() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </div>
@@ -172,7 +177,7 @@ function Mrm() {
             <div className="rules-panel-body">
               <div className="rules-row">
                 <i className="bi bi-bar-chart-fill rules-icon" />
-                <span>La qualification aux MRM s'effectue en finissant parmi les 16 plus hauts élos au <span className="rules-highlight">classement Ranked MSF</span> à la toute fin de la saison de MCSR Ranked</span>
+                <span>La qualification aux MRM s'effectue en finissant parmi les 16 plus hauts élos au <Link to="/ranked" className="rules-link">classement Ranked MSF</Link> à la toute fin de la saison de MCSR Ranked</span>
               </div>
               <div className="rules-row">
                 <i className="bi bi-people-fill rules-icon" />
