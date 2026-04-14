@@ -47,7 +47,7 @@ function Mrm() {
           </div>
 
           <div className="mrm-podium">
-            <h2 className="playoffs-title">PODIUM</h2>
+            <h2 className="podium-title">PODIUM</h2>
             <div className="podium-wrapper">
               <div className="podium-player podium-second">
                 <div className="podium-head">

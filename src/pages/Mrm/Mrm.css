@@ -198,10 +198,21 @@
     padding-bottom: 3rem;
 }
 
+.podium-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #86CE34;
+    margin-bottom: 2rem;
+    text-align: center;
+    margin-left: 200px;
+}
+
 .podium-wrapper {
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
+    margin-left: 200px;
 }
 
 .podium-head {
@@ -496,6 +507,16 @@
     .mrm-podium {
         order: 2;
         padding-bottom: 1.5rem;
+    }
+
+    .podium-title {
+        margin-left: 0;
+        font-size: 1.1rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .podium-wrapper {
+        margin-left: 0;
     }
 
     .podium-block {
