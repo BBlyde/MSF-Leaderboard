@@ -221,11 +221,11 @@ function Mrm() {
             <div className="rules-panel-body">
               <div className="rules-row">
                 <i className="bi bi-intersect rules-icon" />
-                <span>Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d'un <span className="rules-highlight">BO5</span> (une seed de chaque type) à partir de <span className="rules-highlight">14h</span></span>
+                <span>Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d'un <span className="rules-highlight">BO3</span> à partir de <span className="rules-highlight">14h</span></span>
               </div>
               <div className="rules-row">
                 <i className="bi bi-trophy-fill rules-icon" />
-                <span>Les finalistes s'affrontent après une pause de 10 minutes suivant la deuxième demi-finale, lors d'un <span className="rules-highlight">BO7</span> comprenant une seed de chaque type <span className="rules-highlight">+ 1 BT et 1 RP</span> si nécessaire</span>
+                <span>Les finalistes s'affrontent après une pause de 10 minutes suivant la petite finale (elle aussi en <span className='rules-highlight'>BO3</span>), lors d'un <span className="rules-highlight">BO5</span> comprenant une seed de chaque type</span>
               </div>
             </div>
           </div>
