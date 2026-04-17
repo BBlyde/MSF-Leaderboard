@@ -9,6 +9,7 @@ import LeaderboardRsg from './pages/LeaderboardRsg'
 import LeaderboardRanked from './pages/LeaderboardRanked'
 import Mrm from './pages/Mrm'
 import Tournament from './pages/Tournament'
+import Admin from './pages/Admin/Admin'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -29,6 +30,7 @@ function App() {
         <Route path="/ranked" element={<LeaderboardRanked />} />
         <Route path="/mrm" element={<Mrm />} />
         <Route path="/tournament" element={<Tournament />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />
