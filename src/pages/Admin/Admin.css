@@ -1,0 +1,15 @@
+.form-player {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
+.player-field {
+  width: 100px;
+}
+
+.total-field {
+  width: 25px;
+  text-align: center;
+}

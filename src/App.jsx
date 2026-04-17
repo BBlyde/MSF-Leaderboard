@@ -10,6 +10,7 @@ import LeaderboardRanked from './pages/LeaderboardRanked'
 import Mrm from './pages/Mrm'
 import MrmPrediction from './pages/Mrm/MrmPrediction'
 import Tournament from './pages/Tournament'
+import Admin from './pages/Admin/Admin'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -31,6 +32,7 @@ function App() {
         <Route path="/mrm" element={<Mrm />} />
         <Route path="/prediction/mrm" element={<MrmPrediction />} />
         <Route path="/tournament" element={<Tournament />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />
