@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import LeaderboardRsg from './pages/LeaderboardRsg'
 import LeaderboardRanked from './pages/LeaderboardRanked'
 import Mrm from './pages/Mrm'
+import MrmPrediction from './pages/Mrm/MrmPrediction'
 import Tournament from './pages/Tournament'
 
 function ScrollToTop() {
@@ -28,6 +29,7 @@ function App() {
         <Route path="/rsg" element={<LeaderboardRsg />} />
         <Route path="/ranked" element={<LeaderboardRanked />} />
         <Route path="/mrm" element={<Mrm />} />
+        <Route path="/prediction/mrm" element={<MrmPrediction />} />
         <Route path="/tournament" element={<Tournament />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

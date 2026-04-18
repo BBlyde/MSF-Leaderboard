@@ -1,9 +1,40 @@
+import { useEffect, useState } from 'react'
 import './Mrm.css'
 import groupe1 from './groupe1.json'
 import groupe2 from './groupe2.json'
 import { Link } from 'react-router-dom'
+import MrmPronosLeaderboard from './MrmPronosLeaderboard'
+
+const BRACKET_PLACEHOLDER_HEAD = 'https://mc-heads.net/avatar/0385/48'
+
+function BracketTbdSlot() {
+  return (
+    <div className="player tbd">
+      <img src={BRACKET_PLACEHOLDER_HEAD} alt="" className="player-head" width={24} height={24} />
+      <span>TBD</span>
+    </div>
+  )
+}
 
 function Mrm() {
+  const [discordMeId, setDiscordMeId] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' })
+        const data = res.ok ? await res.json() : { user: null }
+        if (!cancelled) setDiscordMeId(data.user?.id ?? null)
+      } catch {
+        if (!cancelled) setDiscordMeId(null)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container">
       <div className="mrm-header">
@@ -11,10 +42,14 @@ function Mrm() {
           <span className="mrm-title">MSF RANKED MASTERS </span><span className='mrm-season'>S10</span>
         </div>
         <span className="mrm-subtitle">Résultats & explication du format</span>
+        <Link to="/prediction/mrm" className="mrm-prediction-link">
+          Pronostics MRM
+        </Link>
       </div>
 
       <div className="section-divider" />
 
+      <div className="mrm-prediction-content-wrap">
       <div className="container">
         <div className="container-first">
           <div className="mrm-playoffs">
@@ -29,18 +64,18 @@ function Mrm() {
               </div>
               <div className="bracket-matches">
                 <div className="match">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
                 <div className="connector connector-left" />
                 <div className="match match-final">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
                 <div className="connector connector-right" />
                 <div className="match">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
               </div>
             </div>
@@ -230,6 +265,9 @@ function Mrm() {
             </div>
           </div>
         </div>
+      </div>
+
+      <MrmPronosLeaderboard highlightUserId={discordMeId} />
       </div>
 
     </div>
