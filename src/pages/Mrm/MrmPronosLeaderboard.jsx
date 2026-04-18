@@ -1,0 +1,91 @@
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { discordAvatarUrl, discordDisplayName } from '../../utils/discordUser'
+
+const mrmPredictionLeaderboardUrl = '/api/prediction/mrm/leaderboard'
+
+/**
+ * @param {{ highlightUserId?: string | null }} props
+ */
+export default function MrmPronosLeaderboard({ highlightUserId = null }) {
+  const location = useLocation()
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(false)
+    ;(async () => {
+      try {
+        const res = await fetch(mrmPredictionLeaderboardUrl)
+        const data = res.ok ? await res.json() : { leaderboard: [] }
+        const list = Array.isArray(data.leaderboard) ? data.leaderboard : []
+        if (!cancelled) {
+          setRows(list)
+          if (!res.ok) setError(true)
+        }
+      } catch {
+        if (!cancelled) {
+          setRows([])
+          setError(true)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [location.pathname])
+
+  return (
+    <aside className="mrm-prediction-leaderboard" aria-label="Classement des pronostics">
+      <div className="mrm-prediction-leaderboard-header">CLASSEMENT PRONOS</div>
+      <div className="mrm-prediction-leaderboard-body">
+        {loading ? (
+          <p className="mrm-prediction-leaderboard-status">Chargement…</p>
+        ) : error ? (
+          <p className="mrm-prediction-leaderboard-status mrm-prediction-leaderboard-status--error">
+            Classement indisponible pour le moment.
+          </p>
+        ) : rows.length === 0 ? (
+          <p className="mrm-prediction-leaderboard-status">Aucune entrée pour l&apos;instant.</p>
+        ) : (
+          <ul className="mrm-prediction-leaderboard-list">
+            {rows.map((row, index) => {
+              const isMe = highlightUserId != null && highlightUserId === row.discordId
+              const label = discordDisplayName({
+                username: row.username,
+                globalName: row.globalName,
+              })
+              const name = label || row.username || '—'
+              return (
+                <li
+                  key={`${row.discordId}-${index}`}
+                  className={['mrm-prediction-leaderboard-row', isMe ? 'mrm-prediction-leaderboard-row--me' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="mrm-prediction-leaderboard-rank">{index + 1}</span>
+                  <img
+                    className="mrm-prediction-leaderboard-avatar"
+                    src={discordAvatarUrl(row.discordId, row.avatar ?? null)}
+                    alt=""
+                    width={32}
+                    height={32}
+                  />
+                  <span className="mrm-prediction-leaderboard-name" title={name}>
+                    {name}
+                  </span>
+                  <span className="mrm-prediction-leaderboard-points">{row.points}</span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </aside>
+  )
+}
