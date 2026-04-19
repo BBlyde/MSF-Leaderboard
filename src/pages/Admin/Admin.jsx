@@ -11,6 +11,10 @@ function formGroup2(formData) {
   alert(`You searched for '${player}'`)
 }
 
+function formBracket(formData) {
+
+}
+
 const playerFields = [1, 2, 3, 4, 5, 6, 7, 8]
 
 function Admin() {
@@ -57,6 +61,84 @@ function Admin() {
           <PlayerForm key={playerNumber} playerNumber={playerNumber} />
         ))}
         <button type="submit">Valider</button>
+      </form>
+
+      <form action={formBracket} className='form-bracket'>
+        <div className='match'>
+          <span>DEMIE 1</span>
+          <div className='player-name'>
+            <input id="player1-semi-name" name="player1-semi-name" className='player-field' placeholder="Player 1" />
+          </div>
+          <div className='player-id'>
+            <input id="player1-semi-id" name="player1-semi-id" className='player-field' placeholder="ID 1" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+          VS
+          <div className='player-name'>
+            <input id="player2-semi-name" name="player2-semi-name" className='player-field' placeholder="Player 2" />
+          </div>
+          <div className='player-id'>
+            <input id="player2-semi-id" name="player2-semi-id" className='player-field' placeholder="ID 2" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+        </div>
+
+        <div className='match'>
+          <span>DEMIE 2</span>
+          <div className='player-name'>
+            <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
+          </div>
+          <div className='player-id'>
+            <input id="player3-semi-id" name="player3-semi-id" className='player-field' placeholder="ID 3" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+          VS
+          <div className='player-name'>
+            <input id="player4-semi-name" name="player4-semi-name" className='player-field' placeholder="Player 4" />
+          </div>
+          <div className='player-id'>
+            <input id="player4-semi-id" name="player4-semi-id" className='player-field' placeholder="ID 4" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+        </div>
+
+        <div className='match'>
+          <span>LOWER</span>
+          <div className='player-name'>
+            <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
+          </div>
+          <div className='player-id'>
+            <input id="player3-semi-id" name="player3-semi-id" className='player-field' placeholder="ID 3" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+          VS
+          <div className='player-name'>
+            <input id="player4-semi-name" name="player4-semi-name" className='player-field' placeholder="Player 4" />
+          </div>
+          <div className='player-id'>
+            <input id="player4-semi-id" name="player4-semi-id" className='player-field' placeholder="ID 4" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+        </div>
+
+        <div className='match'>
+          <span>FINALE</span>
+          <div className='player-name'>
+            <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
+          </div>
+          <div className='player-id'>
+            <input id="player3-semi-id" name="player3-semi-id" className='player-field' placeholder="ID 3" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+          VS
+          <div className='player-name'>
+            <input id="player4-semi-name" name="player4-semi-name" className='player-field' placeholder="Player 4" />
+          </div>
+          <div className='player-id'>
+            <input id="player4-semi-id" name="player4-semi-id" className='player-field' placeholder="ID 4" />
+          </div>
+          <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
+        </div>
       </form>
     </div>
   )
