@@ -199,7 +199,7 @@ function Mrm() {
               </div>
               <div className="rules-row">
                 <i className="bi bi-stopwatch rules-icon" />
-                <span>Chaque groupe consiste en <span className="rules-highlight">6 seeds</span> qui s'enchainent, avec une limite de temps de <span className="rules-highlight">15 minutes par seed</span>, avec une pause de 5 minutes entre les seeds 3 et 4</span>
+                <span>Chaque groupe consiste en <span className="rules-highlight">6 seeds</span> qui s'enchainent et une limite de temps de <span className="rules-highlight">15 minutes par seed</span>, avec une pause de 5 minutes entre les seeds 3 et 4</span>
               </div>
               <div className="rules-row">
                 <i className="bi bi-database rules-icon" />
@@ -221,11 +221,15 @@ function Mrm() {
             <div className="rules-panel-body">
               <div className="rules-row">
                 <i className="bi bi-intersect rules-icon" />
-                <span>Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d'un <span className="rules-highlight">BO3</span> à partir de <span className="rules-highlight">14h</span></span>
+                <span>Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d'un <span className="rules-highlight">BO3</span> (pas de seed type en double par match) à partir de <span className="rules-highlight">14h</span></span>
+              </div>
+              <div className="rules-row">
+                <i className="bi bi-people-fill rules-icon" />
+                <span>Les perdants de chaque demi-finale s'affrontent en <span className='rules-highlight'>BO3</span> après une pause de 10 minutes suivant la deuxième demi-finale pour déterminer qui monte sur le podium</span>
               </div>
               <div className="rules-row">
                 <i className="bi bi-trophy-fill rules-icon" />
-                <span>Les finalistes s'affrontent après une pause de 10 minutes suivant la petite finale (elle aussi en <span className='rules-highlight'>BO3</span>), lors d'un <span className="rules-highlight">BO5</span> comprenant une seed de chaque type</span>
+                <span>Les finalistes s'affrontent dans la foulée lors d'un <span className='rules-highlight'>BO5</span> comprenant une seed de chaque type </span>
               </div>
             </div>
           </div>
