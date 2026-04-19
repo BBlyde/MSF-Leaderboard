@@ -63,6 +63,14 @@ function Mrm() {
                   <BracketTbdSlot />
                 </div>
               </div>
+
+              <div className="connector-vertical" />
+              <div className="bracket-matches bracket-matches-third">
+                <div className="match match-third">
+                  <div className="player tbd">TBD</div>
+                  <div className="player tbd">TBD</div>
+                </div>
+              </div>
             </div>
           </div>
 
