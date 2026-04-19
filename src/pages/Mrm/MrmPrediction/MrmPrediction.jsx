@@ -21,9 +21,10 @@ import groupe1Baseline from '../groupe1.json'
 import groupe2Baseline from '../groupe2.json'
 import { reconcileOrder } from '../mrmPredictionStorage'
 import MrmPronosLeaderboard from '../MrmPronosLeaderboard'
+import { predictionApiUrl } from '../../../utils/predictionApi'
 
 /** Aligné backend Quarkus : POST/GET /api/prediction/{event} (pas /api/predictions/...). */
-const mrmPredictionApiUrl = '/api/prediction/mrm'
+const mrmPredictionApiUrl = predictionApiUrl('/prediction/mrm')
 
 const DEFAULT_HEAD = 'https://mc-heads.net/avatar/0385/48'
 

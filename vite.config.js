@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    envPrefix: ['VITE_'],
     plugins: [react(), devApiPlugin()],
   }
 })

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { discordAvatarUrl, discordDisplayName } from '../../utils/discordUser'
+import { predictionApiUrl } from '../../utils/predictionApi'
 
-const mrmPredictionLeaderboardUrl = '/api/prediction/mrm/leaderboard'
+const mrmPredictionLeaderboardUrl = predictionApiUrl('/prediction/mrm/leaderboard')
 
 /**
  * @param {{ highlightUserId?: string | null }} props
