@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
 import './Mrm.css'
 import groupe1 from './groupe1.json'
 import groupe2 from './groupe2.json'
 import { Link } from 'react-router-dom'
-import MrmPronosLeaderboard from './MrmPronosLeaderboard'
 
 const BRACKET_PLACEHOLDER_HEAD = 'https://mc-heads.net/avatar/0385/48'
 
@@ -17,24 +15,6 @@ function BracketTbdSlot() {
 }
 
 function Mrm() {
-  const [discordMeId, setDiscordMeId] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' })
-        const data = res.ok ? await res.json() : { user: null }
-        if (!cancelled) setDiscordMeId(data.user?.id ?? null)
-      } catch {
-        if (!cancelled) setDiscordMeId(null)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container">
       <div className="mrm-header">
@@ -267,7 +247,6 @@ function Mrm() {
         </div>
       </div>
 
-      <MrmPronosLeaderboard highlightUserId={discordMeId} />
       </div>
 
     </div>

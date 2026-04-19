@@ -714,17 +714,30 @@ button.player.mrm-match-pickable {
     text-align: center;
 }
 
-/* Page pronos : même largeur de contenu que MRM ; classement à droite du wrap (absolute), taille bornée pour 1080p et grands écrans. */
+/* Page pronos : leaderboard sticky à droite en desktop + toggle mobile. */
 .mrm-prediction-content-wrap {
     position: relative;
     width: 100%;
     align-self: stretch;
+    --mrm-leaderboard-width: clamp(11.25rem, 9vw + 4.5rem, 14rem);
+    --mrm-leaderboard-max-height: min(60vh, 30rem);
+}
+
+.mrm-prediction-leaderboard-shell {
+    z-index: 12;
+}
+
+.mrm-prediction-leaderboard-toggle {
+    display: none;
+}
+
+.mrm-prediction-leaderboard-panel {
+    width: 100%;
 }
 
 .mrm-prediction-leaderboard {
     width: 100%;
-    max-width: 700px;
-    margin: 1.75rem auto 0;
+    margin: 0;
     border: 1px solid #2a2a2a;
     border-radius: 6px;
     overflow: hidden;
@@ -734,25 +747,88 @@ button.player.mrm-match-pickable {
     min-height: 0;
 }
 
-@media (min-width: 991px) {
-    .mrm-prediction-content-wrap {
-        padding-right: clamp(0.35rem, 1vw, 0.85rem);
+@media (min-width: 1601px) {
+    .mrm-prediction-leaderboard-shell {
+        position: fixed;
+        right: clamp(0.75rem, 2.5vw, 2.25rem);
+        top: 50%;
+        transform: translateY(-50%);
+        width: var(--mrm-leaderboard-width);
+        z-index: 40;
     }
 
-    .mrm-prediction-content-wrap .mrm-prediction-leaderboard {
-        position: absolute;
-        top: 0;
-        right: 2.5%;
-        bottom: auto;
-        /* Largeur : compact en 1080p, ne grossit pas indûment sur ultra-large */
-        width: clamp(11.25rem, 9vw + 4.5rem, 14rem);
-        max-width: min(14rem, 236px);
-        /* Hauteur : moitié du bloc contenu, plafonnée (vh + rem) pour les pages très longues */
-        height: min(75%, min(60vh, 30rem));
-        max-height: min(75%, min(60vh, 30rem));
-        margin: 0;
-        z-index: 12;
+    .mrm-prediction-leaderboard-panel,
+    .mrm-prediction-leaderboard {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .mrm-prediction-leaderboard {
+        max-height: var(--mrm-leaderboard-max-height);
         box-shadow: 0 6px 22px rgba(0, 0, 0, 0.38);
+    }
+}
+
+@media (max-width: 1600px) {
+    .mrm-prediction-content-wrap {
+        padding-bottom: 4.5rem;
+    }
+
+    .mrm-prediction-leaderboard-shell {
+        position: fixed;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        width: min(20rem, calc(100vw - 1.5rem));
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+        z-index: 35;
+    }
+
+    .mrm-prediction-leaderboard-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(134, 206, 52, 0.42);
+        background: rgba(16, 44, 48, 0.95);
+        color: #dff5c1;
+        border-radius: 999px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .mrm-prediction-leaderboard-toggle:focus-visible {
+        outline: 2px solid #86CE34;
+        outline-offset: 2px;
+    }
+
+    .mrm-prediction-leaderboard-panel {
+        width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(0.35rem);
+        pointer-events: none;
+        transition: max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .mrm-prediction-leaderboard-panel--open {
+        max-height: min(72vh, 32rem);
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .mrm-prediction-leaderboard {
+        width: 100%;
+        max-width: 100%;
+        max-height: min(72vh, 32rem);
+        margin: 0;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
     }
 }
 

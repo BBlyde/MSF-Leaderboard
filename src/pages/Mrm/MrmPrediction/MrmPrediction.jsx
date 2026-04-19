@@ -208,13 +208,28 @@ function MrmPrediction() {
   const [semi2Winner, setSemi2Winner] = useState(null)
   const [finalWinner, setFinalWinner] = useState(null)
   const [hydrated, setHydrated] = useState(false)
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
+  const [lockInfo, setLockInfo] = useState({ locked: false, lockAt: null, serverNow: null })
 
   /** Payload JSON dernier aligné serveur / dernier POST réussi — pas de POST si identique à l’état courant. */
   const baselinePredictionPayloadRef = useRef(null)
   /** Après GET : une capture de baseline depuis l’état React (post-effets de réconciliation), puis false. */
   const captureBaselineAfterHydrateRef = useRef(false)
 
-  const canEdit = authChecked && discordUser != null && hydrated
+  const isLocked = lockInfo.locked === true
+  const lockAtLabel = useMemo(() => {
+    if (typeof lockInfo.lockAt !== 'string' || lockInfo.lockAt.trim() === '') return null
+    try {
+      return new Intl.DateTimeFormat('fr-FR', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: 'Europe/Paris',
+      }).format(new Date(lockInfo.lockAt))
+    } catch {
+      return null
+    }
+  }, [lockInfo.lockAt])
+  const canEdit = !isLocked && authChecked && discordUser != null && hydrated
 
   const predictionStateRef = useRef({
     order1,
@@ -269,6 +284,14 @@ function MrmPrediction() {
       try {
         const res = await fetch(mrmPredictionApiUrl, { credentials: 'include' })
         const data = res.ok ? await res.json() : {}
+        console.log('data', data)
+        if (!cancelled) {
+          setLockInfo({
+            locked: data?.locked === true,
+            lockAt: typeof data?.lockAt === 'string' ? data.lockAt : null,
+            serverNow: typeof data?.serverNow === 'string' ? data.serverNow : null,
+          })
+        }
         const pred = data?.prediction
         if (cancelled) return
 
@@ -439,11 +462,46 @@ function MrmPrediction() {
           </a>
         </div>
       ) : null}
+      {isLocked ? (
+        <div className="mrm-prediction-auth-banner" role="status">
+          <span>
+            Les pronostics sont verrouilles{lockAtLabel ? ` depuis le ${lockAtLabel}` : ''}. La modification n&apos;est
+            plus possible.
+          </span>
+        </div>
+      ) : null}
 
       <div className="section-divider" />
 
       <div className="mrm-prediction-content-wrap">
-      <div className="container">
+        <aside className="mrm-prediction-leaderboard-shell">
+          <button
+            type="button"
+            className="mrm-prediction-leaderboard-toggle"
+            aria-expanded={isLeaderboardOpen}
+            aria-controls="mrm-prediction-leaderboard-panel"
+            aria-label={
+              isLeaderboardOpen
+                ? 'Masquer le classement des pronostics'
+                : 'Afficher le classement des pronostics'
+            }
+            onClick={() => setIsLeaderboardOpen((open) => !open)}
+          >
+            {isLeaderboardOpen ? 'Masquer le classement' : 'Classement pronos'}
+          </button>
+          <div
+            id="mrm-prediction-leaderboard-panel"
+            className={[
+              'mrm-prediction-leaderboard-panel',
+              isLeaderboardOpen ? 'mrm-prediction-leaderboard-panel--open' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <MrmPronosLeaderboard highlightUserId={discordUser?.id ?? null} />
+          </div>
+        </aside>
+        <div className="container">
         <div className="container-first">
           <div className="mrm-playoffs">
             <h2 className="playoffs-title">PHASE FINALE</h2>
@@ -550,7 +608,9 @@ function MrmPrediction() {
               <h2 className="playoffs-title">PHASE DE GROUPES</h2>
               <div className="mrm-prediction-hint-slot">
                 <p className="mrm-prediction-hint">
-                  Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).
+                  {isLocked
+                    ? 'Les pronostics sont verrouilles : le classement n’est plus modifiable.'
+                    : 'Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).'}
                 </p>
               </div>
             </div>
@@ -678,9 +738,7 @@ function MrmPrediction() {
             </div>
           </div>
         </div>
-      </div>
-
-      <MrmPronosLeaderboard highlightUserId={discordUser?.id ?? null} />
+        </div>
       </div>
     </div>
   )
