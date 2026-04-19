@@ -888,11 +888,11 @@ button.player.mrm-match-pickable {
 }
 
 .mrm-prediction-leaderboard-rank {
-    min-width: 1.35rem;
+    min-width: 1rem;
     font-weight: 700;
     color: #86CE34;
     font-variant-numeric: tabular-nums;
-    text-align: right;
+    text-align: left;
 }
 
 .mrm-prediction-leaderboard-avatar {
