@@ -82,8 +82,8 @@ function Mrm() {
               <div className="connector-vertical" />
               <div className="bracket-matches bracket-matches-third">
                 <div className="match match-third">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
               </div>
             </div>

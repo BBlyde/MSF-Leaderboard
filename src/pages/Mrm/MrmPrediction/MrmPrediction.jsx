@@ -48,6 +48,13 @@ function semi2PairIds(order1, order2) {
   return [playerId(2, order2[0]), playerId(1, order1[1])]
 }
 
+function matchLoserId([a, b], winner) {
+  if (!winner || !a || !b) return null
+  if (winner === a) return b
+  if (winner === b) return a
+  return null
+}
+
 function SortableGroupRow({ id, qualify, dragDisabled, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -206,6 +213,7 @@ function MrmPrediction() {
   const [order2, setOrder2] = useState(() => Array.from({ length: g2.length }, (_, i) => i))
   const [semi1Winner, setSemi1Winner] = useState(null)
   const [semi2Winner, setSemi2Winner] = useState(null)
+  const [petiteFinaleWinner, setPetiteFinaleWinner] = useState(null)
   const [finalWinner, setFinalWinner] = useState(null)
   const [hydrated, setHydrated] = useState(false)
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
@@ -236,9 +244,17 @@ function MrmPrediction() {
     order2,
     semi1Winner,
     semi2Winner,
+    petiteFinaleWinner,
     finalWinner,
   })
-  predictionStateRef.current = { order1, order2, semi1Winner, semi2Winner, finalWinner }
+  predictionStateRef.current = {
+    order1,
+    order2,
+    semi1Winner,
+    semi2Winner,
+    petiteFinaleWinner,
+    finalWinner,
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -268,6 +284,7 @@ function MrmPrediction() {
       setOrder2(Array.from({ length: g2.length }, (_, i) => i))
       setSemi1Winner(null)
       setSemi2Winner(null)
+      setPetiteFinaleWinner(null)
       setFinalWinner(null)
       setHydrated(true)
       return
@@ -306,6 +323,15 @@ function MrmPrediction() {
           const w2 = pred.semi2Winner && s2.includes(pred.semi2Winner) ? pred.semi2Winner : null
           setSemi1Winner(w1)
           setSemi2Winner(w2)
+          const thirdPlaceFinalists = [matchLoserId(s1, w1), matchLoserId(s2, w2)].filter(Boolean)
+          const petiteWinnerRaw = pred.petiteFinaleWinner ?? pred.smallFinalWinner ?? pred.thirdPlaceWinner ?? null
+          const pw =
+            petiteWinnerRaw &&
+            thirdPlaceFinalists.length === 2 &&
+            thirdPlaceFinalists.includes(petiteWinnerRaw)
+              ? petiteWinnerRaw
+              : null
+          setPetiteFinaleWinner(pw)
           const finalists = [w1, w2].filter(Boolean)
           const fw =
             pred.finalWinner && finalists.length === 2 && finalists.includes(pred.finalWinner)
@@ -317,6 +343,7 @@ function MrmPrediction() {
           setOrder2(defaultOrder2)
           setSemi1Winner(null)
           setSemi2Winner(null)
+          setPetiteFinaleWinner(null)
           setFinalWinner(null)
         }
       } catch {
@@ -325,6 +352,7 @@ function MrmPrediction() {
           setOrder2(defaultOrder2)
           setSemi1Winner(null)
           setSemi2Winner(null)
+          setPetiteFinaleWinner(null)
           setFinalWinner(null)
         }
       } finally {
@@ -359,6 +387,18 @@ function MrmPrediction() {
     setFinalWinner((w) => (w && finalists.includes(w) ? w : null))
   }, [hydrated, semi1Winner, semi2Winner])
 
+  useEffect(() => {
+    if (!hydrated) return
+    const s1 = semi1PairIds(order1, order2)
+    const s2 = semi2PairIds(order1, order2)
+    const losers = [matchLoserId(s1, semi1Winner), matchLoserId(s2, semi2Winner)].filter(Boolean)
+    if (losers.length !== 2) {
+      setPetiteFinaleWinner(null)
+      return
+    }
+    setPetiteFinaleWinner((w) => (w && losers.includes(w) ? w : null))
+  }, [hydrated, order1, order2, semi1Winner, semi2Winner])
+
   /** Après GET + effets de réconciliation : figer la baseline sans POST (état lu après le prochain tick). */
   useEffect(() => {
     if (!hydrated || !canEdit || !captureBaselineAfterHydrateRef.current) return
@@ -370,12 +410,13 @@ function MrmPrediction() {
         order2: s.order2,
         semi1Winner: s.semi1Winner ?? null,
         semi2Winner: s.semi2Winner ?? null,
+        petiteFinaleWinner: s.petiteFinaleWinner ?? null,
         finalWinner: s.finalWinner ?? null,
       })
       captureBaselineAfterHydrateRef.current = false
     }, 0)
     return () => clearTimeout(t)
-  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, finalWinner])
+  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, petiteFinaleWinner, finalWinner])
 
   useEffect(() => {
     if (!hydrated || !canEdit) return
@@ -386,6 +427,7 @@ function MrmPrediction() {
       order2,
       semi1Winner: semi1Winner ?? null,
       semi2Winner: semi2Winner ?? null,
+      petiteFinaleWinner: petiteFinaleWinner ?? null,
       finalWinner: finalWinner ?? null,
     }
     const payloadStr = JSON.stringify(payload)
@@ -414,7 +456,7 @@ function MrmPrediction() {
       })()
     }, 450)
     return () => clearTimeout(syncTimer)
-  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, finalWinner])
+  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, petiteFinaleWinner, finalWinner])
 
   const playerMap = useMemo(() => {
     const m = new Map()
@@ -431,6 +473,12 @@ function MrmPrediction() {
     return a.length === 2 ? a : [null, null]
   }, [semi1Winner, semi2Winner])
 
+  const petiteFinaleIds = useMemo(() => {
+    const loser1 = matchLoserId(s1Ids, semi1Winner)
+    const loser2 = matchLoserId(s2Ids, semi2Winner)
+    return loser1 && loser2 ? [loser1, loser2] : [null, null]
+  }, [s1Ids, s2Ids, semi1Winner, semi2Winner])
+
   const runnerUpId = useMemo(() => {
     if (!finalWinner || finalistIds[0] == null) return null
     const [x, y] = finalistIds
@@ -441,6 +489,7 @@ function MrmPrediction() {
 
   const firstPlayer = finalWinner ? playerMap.get(finalWinner) : null
   const secondPlayer = runnerUpId ? playerMap.get(runnerUpId) : null
+  const thirdPlayer = petiteFinaleWinner ? playerMap.get(petiteFinaleWinner) : null
 
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container mrm-prediction">
@@ -565,6 +614,29 @@ function MrmPrediction() {
                   />
                 </div>
               </div>
+
+              <div className="connector-vertical" />
+              <div className="bracket-labels bracket-labels-third">
+                <div className="round-label">PETITE FINALE</div>
+              </div>
+              <div className="bracket-matches bracket-matches-third">
+                <div className="match match-third">
+                  <BracketPlayerButton
+                    pid={petiteFinaleIds[0]}
+                    player={petiteFinaleIds[0] ? playerMap.get(petiteFinaleIds[0]) : null}
+                    winnerId={petiteFinaleWinner}
+                    onPick={setPetiteFinaleWinner}
+                    pickable={canEdit && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                  />
+                  <BracketPlayerButton
+                    pid={petiteFinaleIds[1]}
+                    player={petiteFinaleIds[1] ? playerMap.get(petiteFinaleIds[1]) : null}
+                    winnerId={petiteFinaleWinner}
+                    onPick={setPetiteFinaleWinner}
+                    pickable={canEdit && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -591,9 +663,9 @@ function MrmPrediction() {
               </div>
               <div className="podium-player podium-third">
                 <div className="podium-head">
-                  <img src={DEFAULT_HEAD} className="player-head" alt="" />
+                  <img src={thirdPlayer ? mcHeadUrl(thirdPlayer.uuid) : DEFAULT_HEAD} className="player-head" alt="" />
                 </div>
-                <div className="podium-name">TBD</div>
+                <div className="podium-name">{thirdPlayer?.name ?? 'TBD'}</div>
                 <div className="podium-block podium-block-third">
                   <span className="podium-rank">3</span>
                 </div>
