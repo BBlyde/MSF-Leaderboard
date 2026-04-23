@@ -616,9 +616,6 @@ function MrmPrediction() {
               </div>
 
               <div className="connector-vertical" />
-              <div className="bracket-labels bracket-labels-third">
-                <div className="round-label">PETITE FINALE</div>
-              </div>
               <div className="bracket-matches bracket-matches-third">
                 <div className="match match-third">
                   <BracketPlayerButton
