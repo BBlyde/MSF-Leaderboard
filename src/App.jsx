@@ -22,22 +22,24 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <>
+    <div className="app-shell">
       <ScrollToTop />
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/rsg" element={<LeaderboardRsg />} />
-        <Route path="/ranked" element={<LeaderboardRanked />} />
-        <Route path="/mrm" element={<Mrm />} />
-        <Route path="/prediction/mrm" element={<MrmPrediction />} />
-        <Route path="/tournament" element={<Tournament />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/rsg" element={<LeaderboardRsg />} />
+          <Route path="/ranked" element={<LeaderboardRanked />} />
+          <Route path="/mrm" element={<Mrm />} />
+          <Route path="/prediction/mrm" element={<MrmPrediction />} />
+          <Route path="/tournament" element={<Tournament />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
       <Footer />
       <Analytics />
-    </>
+    </div>
   )
 }
 

@@ -136,6 +136,11 @@
     box-shadow: 0 0 14px rgba(134, 206, 52, 0.15);
 }
 
+.match-final.match-final--locked {
+    border-color: #6a6a6a;
+    box-shadow: 0 0 14px rgba(106, 106, 106, 0.18);
+}
+
 .player {
     height: 40px;
     display: flex;
@@ -404,6 +409,26 @@ button.player.mrm-match-pickable {
     border: 1px solid #2e2e2e;
     border-radius: 8px;
     overflow: hidden;
+}
+
+.group-table.mrm-group-table--locked {
+    border-color: #3a3a3a;
+    background: #1a1a1a;
+}
+
+.group-table.mrm-group-table--locked .group-title {
+    background: linear-gradient(90deg, #5a5a5a 0%, #2f2f2f 100%) !important;
+    color: #d6d6d6;
+}
+
+.group-table.mrm-group-table--locked tbody tr.row-qualify {
+    background: rgba(160, 160, 160, 0.14);
+}
+
+.group-table.mrm-group-table--locked tbody tr.row-qualify td,
+.group-table.mrm-group-table--locked td.col-rank,
+.group-table.mrm-group-table--locked td.col-pts {
+    color: #b9b9b9;
 }
 
 .group-title {
@@ -705,6 +730,24 @@ button.player.mrm-match-pickable {
     border-radius: 8px;
 }
 
+.mrm-prediction-auth-banner--locks {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.mrm-prediction-auth-banner--locks+.section-divider {
+    margin-top: 1.25rem;
+}
+
+.mrm-prediction-lock-list {
+    margin: 0.35rem 0 0 1rem;
+    padding: 0;
+}
+
+.mrm-prediction-lock-list li {
+    margin: 0.12rem 0;
+}
+
 .mrm-prediction-auth-link {
     display: inline-flex;
     align-items: center;
@@ -728,6 +771,18 @@ button.player.mrm-match-pickable {
     align-items: center;
     gap: 0.25rem;
     margin-bottom: 0.75rem;
+}
+
+.mrm-prediction-playoffs-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.mrm-prediction-playoffs-head .playoffs-title {
+    margin-bottom: 0.35rem;
 }
 
 .mrm-prediction-groups-head .playoffs-title {

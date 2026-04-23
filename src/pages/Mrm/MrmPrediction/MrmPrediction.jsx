@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import {
   closestCenter,
   DndContext,
@@ -27,6 +27,22 @@ import { predictionApiUrl } from '../../../utils/predictionApi'
 const mrmPredictionApiUrl = predictionApiUrl('/prediction/mrm')
 
 const DEFAULT_HEAD = 'https://mc-heads.net/avatar/0385/48'
+const DEFAULT_LOCK_STATE = {
+  global: { locked: false, lockAt: null },
+  group1: { locked: false, lockAt: null },
+  group2: { locked: false, lockAt: null },
+  playoffs: { locked: false, lockAt: null },
+  serverNow: null,
+}
+
+function normalizeLockEntry(rawLock, fallbackLocked = false, fallbackLockAt = null) {
+  const raw = rawLock && typeof rawLock === 'object' ? rawLock : null
+  const lockAtCandidate = raw?.lockAt ?? fallbackLockAt
+  return {
+    locked: raw?.locked === true || fallbackLocked === true,
+    lockAt: typeof lockAtCandidate === 'string' && lockAtCandidate.trim() !== '' ? lockAtCandidate : null,
+  }
+}
 
 function mcHeadUrl(uuid) {
   if (uuid != null && String(uuid).trim() !== '') {
@@ -53,6 +69,32 @@ function matchLoserId([a, b], winner) {
   if (winner === a) return b
   if (winner === b) return a
   return null
+}
+
+function formatLockDateLabel(lockAt) {
+  if (typeof lockAt !== 'string' || lockAt.trim() === '') return null
+  try {
+    const isoLocalMatch = lockAt.match(
+      /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/,
+    )
+    const date = isoLocalMatch
+      ? new Date(
+          Number(isoLocalMatch[1]),
+          Number(isoLocalMatch[2]) - 1,
+          Number(isoLocalMatch[3]),
+          Number(isoLocalMatch[4]),
+          Number(isoLocalMatch[5]),
+          Number(isoLocalMatch[6] ?? '0'),
+        )
+      : new Date(lockAt)
+
+    return new Intl.DateTimeFormat('fr-FR', {
+      dateStyle: 'full',
+      timeStyle: 'medium',
+    }).format(date)
+  } catch {
+    return null
+  }
 }
 
 function SortableGroupRow({ id, qualify, dragDisabled, children }) {
@@ -92,6 +134,7 @@ function SortableGroupTable({
   titleClassName,
   groupTitle,
   interactionsEnabled,
+  isLocked = false,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -114,7 +157,7 @@ function SortableGroupTable({
   )
 
   return (
-    <div className={`group-table group-table-${groupNum}`}>
+    <div className={`group-table group-table-${groupNum} ${isLocked ? 'mrm-group-table--locked' : ''}`}>
       <div className="group-table-scroll">
         <div className={`group-title ${titleClassName}`}>{groupTitle}</div>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -213,38 +256,38 @@ function MrmPrediction() {
   const [order2, setOrder2] = useState(() => Array.from({ length: g2.length }, (_, i) => i))
   const [semi1Winner, setSemi1Winner] = useState(null)
   const [semi2Winner, setSemi2Winner] = useState(null)
-  const [petiteFinaleWinner, setPetiteFinaleWinner] = useState(null)
+  const [thirdPlaceWinner, setThirdPlaceWinner] = useState(null)
   const [finalWinner, setFinalWinner] = useState(null)
   const [hydrated, setHydrated] = useState(false)
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
-  const [lockInfo, setLockInfo] = useState({ locked: false, lockAt: null, serverNow: null })
+  const [lockInfo, setLockInfo] = useState(DEFAULT_LOCK_STATE)
 
   /** Payload JSON dernier aligné serveur / dernier POST réussi — pas de POST si identique à l’état courant. */
   const baselinePredictionPayloadRef = useRef(null)
   /** Après GET : une capture de baseline depuis l’état React (post-effets de réconciliation), puis false. */
   const captureBaselineAfterHydrateRef = useRef(false)
 
-  const isLocked = lockInfo.locked === true
-  const lockAtLabel = useMemo(() => {
-    if (typeof lockInfo.lockAt !== 'string' || lockInfo.lockAt.trim() === '') return null
-    try {
-      return new Intl.DateTimeFormat('fr-FR', {
-        dateStyle: 'full',
-        timeStyle: 'short',
-        timeZone: 'Europe/Paris',
-      }).format(new Date(lockInfo.lockAt))
-    } catch {
-      return null
-    }
-  }, [lockInfo.lockAt])
-  const canEdit = !isLocked && authChecked && discordUser != null && hydrated
+  const isGlobalLocked = lockInfo.global.locked === true
+  const isGroup1Locked = isGlobalLocked || lockInfo.group1.locked === true
+  const isGroup2Locked = isGlobalLocked || lockInfo.group2.locked === true
+  const isPlayoffsLocked = isGlobalLocked || lockInfo.playoffs.locked === true
+
+  const globalLockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.global.lockAt), [lockInfo.global.lockAt])
+  const group1LockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.group1.lockAt), [lockInfo.group1.lockAt])
+  const group2LockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.group2.lockAt), [lockInfo.group2.lockAt])
+  const playoffsLockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.playoffs.lockAt), [lockInfo.playoffs.lockAt])
+
+  const canEditGroup1 = !isGroup1Locked && authChecked && discordUser != null && hydrated
+  const canEditGroup2 = !isGroup2Locked && authChecked && discordUser != null && hydrated
+  const canEditPlayoffs = !isPlayoffsLocked && authChecked && discordUser != null && hydrated
+  const canSyncPrediction = authChecked && discordUser != null && hydrated
 
   const predictionStateRef = useRef({
     order1,
     order2,
     semi1Winner,
     semi2Winner,
-    petiteFinaleWinner,
+    thirdPlaceWinner,
     finalWinner,
   })
   predictionStateRef.current = {
@@ -252,7 +295,7 @@ function MrmPrediction() {
     order2,
     semi1Winner,
     semi2Winner,
-    petiteFinaleWinner,
+    thirdPlaceWinner,
     finalWinner,
   }
 
@@ -284,7 +327,7 @@ function MrmPrediction() {
       setOrder2(Array.from({ length: g2.length }, (_, i) => i))
       setSemi1Winner(null)
       setSemi2Winner(null)
-      setPetiteFinaleWinner(null)
+      setThirdPlaceWinner(null)
       setFinalWinner(null)
       setHydrated(true)
       return
@@ -303,9 +346,24 @@ function MrmPrediction() {
         const data = res.ok ? await res.json() : {}
         console.log('data', data)
         if (!cancelled) {
+          const rawLocks = data?.locks && typeof data.locks === 'object' ? data.locks : {}
           setLockInfo({
-            locked: data?.locked === true,
-            lockAt: typeof data?.lockAt === 'string' ? data.lockAt : null,
+            global: normalizeLockEntry(rawLocks.global, data?.locked === true, data?.lockAt),
+            group1: normalizeLockEntry(
+              rawLocks.group1,
+              data?.lockedGroup1 === true || data?.group1Locked === true,
+              data?.lockAtGroup1 ?? data?.group1LockAt,
+            ),
+            group2: normalizeLockEntry(
+              rawLocks.group2,
+              data?.lockedGroup2 === true || data?.group2Locked === true,
+              data?.lockAtGroup2 ?? data?.group2LockAt,
+            ),
+            playoffs: normalizeLockEntry(
+              rawLocks.playoffs,
+              data?.lockedPlayoffs === true || data?.playoffsLocked === true,
+              data?.lockAtPlayoffs ?? data?.playoffsLockAt,
+            ),
             serverNow: typeof data?.serverNow === 'string' ? data.serverNow : null,
           })
         }
@@ -324,14 +382,14 @@ function MrmPrediction() {
           setSemi1Winner(w1)
           setSemi2Winner(w2)
           const thirdPlaceFinalists = [matchLoserId(s1, w1), matchLoserId(s2, w2)].filter(Boolean)
-          const petiteWinnerRaw = pred.petiteFinaleWinner ?? pred.smallFinalWinner ?? pred.thirdPlaceWinner ?? null
-          const pw =
-            petiteWinnerRaw &&
+          const thirdPlaceWinnerRaw = pred.thirdPlaceWinner ?? pred.petiteFinaleWinner ?? pred.smallFinalWinner ?? null
+          const tpw =
+            thirdPlaceWinnerRaw &&
             thirdPlaceFinalists.length === 2 &&
-            thirdPlaceFinalists.includes(petiteWinnerRaw)
-              ? petiteWinnerRaw
+            thirdPlaceFinalists.includes(thirdPlaceWinnerRaw)
+              ? thirdPlaceWinnerRaw
               : null
-          setPetiteFinaleWinner(pw)
+          setThirdPlaceWinner(tpw)
           const finalists = [w1, w2].filter(Boolean)
           const fw =
             pred.finalWinner && finalists.length === 2 && finalists.includes(pred.finalWinner)
@@ -343,7 +401,7 @@ function MrmPrediction() {
           setOrder2(defaultOrder2)
           setSemi1Winner(null)
           setSemi2Winner(null)
-          setPetiteFinaleWinner(null)
+          setThirdPlaceWinner(null)
           setFinalWinner(null)
         }
       } catch {
@@ -352,7 +410,7 @@ function MrmPrediction() {
           setOrder2(defaultOrder2)
           setSemi1Winner(null)
           setSemi2Winner(null)
-          setPetiteFinaleWinner(null)
+          setThirdPlaceWinner(null)
           setFinalWinner(null)
         }
       } finally {
@@ -393,15 +451,15 @@ function MrmPrediction() {
     const s2 = semi2PairIds(order1, order2)
     const losers = [matchLoserId(s1, semi1Winner), matchLoserId(s2, semi2Winner)].filter(Boolean)
     if (losers.length !== 2) {
-      setPetiteFinaleWinner(null)
+      setThirdPlaceWinner(null)
       return
     }
-    setPetiteFinaleWinner((w) => (w && losers.includes(w) ? w : null))
+    setThirdPlaceWinner((w) => (w && losers.includes(w) ? w : null))
   }, [hydrated, order1, order2, semi1Winner, semi2Winner])
 
   /** Après GET + effets de réconciliation : figer la baseline sans POST (état lu après le prochain tick). */
   useEffect(() => {
-    if (!hydrated || !canEdit || !captureBaselineAfterHydrateRef.current) return
+    if (!hydrated || !canSyncPrediction || !captureBaselineAfterHydrateRef.current) return
     const t = setTimeout(() => {
       if (!captureBaselineAfterHydrateRef.current) return
       const s = predictionStateRef.current
@@ -410,16 +468,16 @@ function MrmPrediction() {
         order2: s.order2,
         semi1Winner: s.semi1Winner ?? null,
         semi2Winner: s.semi2Winner ?? null,
-        petiteFinaleWinner: s.petiteFinaleWinner ?? null,
+        thirdPlaceWinner: s.thirdPlaceWinner ?? null,
         finalWinner: s.finalWinner ?? null,
       })
       captureBaselineAfterHydrateRef.current = false
     }, 0)
     return () => clearTimeout(t)
-  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, petiteFinaleWinner, finalWinner])
+  }, [hydrated, canSyncPrediction, order1, order2, semi1Winner, semi2Winner, thirdPlaceWinner, finalWinner])
 
   useEffect(() => {
-    if (!hydrated || !canEdit) return
+    if (!hydrated || !canSyncPrediction) return
     if (captureBaselineAfterHydrateRef.current) return
 
     const payload = {
@@ -427,7 +485,7 @@ function MrmPrediction() {
       order2,
       semi1Winner: semi1Winner ?? null,
       semi2Winner: semi2Winner ?? null,
-      petiteFinaleWinner: petiteFinaleWinner ?? null,
+      thirdPlaceWinner: thirdPlaceWinner ?? null,
       finalWinner: finalWinner ?? null,
     }
     const payloadStr = JSON.stringify(payload)
@@ -456,7 +514,7 @@ function MrmPrediction() {
       })()
     }, 450)
     return () => clearTimeout(syncTimer)
-  }, [hydrated, canEdit, order1, order2, semi1Winner, semi2Winner, petiteFinaleWinner, finalWinner])
+  }, [hydrated, canSyncPrediction, order1, order2, semi1Winner, semi2Winner, thirdPlaceWinner, finalWinner])
 
   const playerMap = useMemo(() => {
     const m = new Map()
@@ -489,16 +547,16 @@ function MrmPrediction() {
 
   const firstPlayer = finalWinner ? playerMap.get(finalWinner) : null
   const secondPlayer = runnerUpId ? playerMap.get(runnerUpId) : null
-  const thirdPlayer = petiteFinaleWinner ? playerMap.get(petiteFinaleWinner) : null
+  const thirdPlayer = thirdPlaceWinner ? playerMap.get(thirdPlaceWinner) : null
 
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container mrm-prediction">
       <div className="mrm-header">
         <div className="mrm-title-row">
-          <span className="mrm-title">MSF RANKED MASTERS </span>
+          <span className="mrm-title">PREDICTIONS MRM </span>
           <span className="mrm-season">S10</span>
         </div>
-        <span className="mrm-subtitle">Prédictions — classe les groupes, choisis les vainqueurs</span>
+        <span className="mrm-subtitle">Classe les groupes, choisis les vainqueurs</span>
       </div>
 
       {authChecked && !discordUser ? (
@@ -511,12 +569,23 @@ function MrmPrediction() {
           </a>
         </div>
       ) : null}
-      {isLocked ? (
-        <div className="mrm-prediction-auth-banner" role="status">
+      {isGlobalLocked ? (
+        <div className="mrm-prediction-auth-banner mrm-prediction-auth-banner--locks" role="status">
           <span>
-            Les pronostics sont verrouilles{lockAtLabel ? ` depuis le ${lockAtLabel}` : ''}. La modification n&apos;est
-            plus possible.
+            Tous les pronostics sont verrouilles
+            {globalLockAtLabel ? ` depuis le ${globalLockAtLabel}` : ''}. La modification n&apos;est plus possible.
           </span>
+        </div>
+      ) : isGroup1Locked || isGroup2Locked || isPlayoffsLocked ? (
+        <div className="mrm-prediction-auth-banner mrm-prediction-auth-banner--locks" role="status">
+          <div>
+            <strong>Sections verrouillees :</strong>
+            <ul className="mrm-prediction-lock-list">
+              {isGroup1Locked ? <li>Groupe 1{group1LockAtLabel ? ` (depuis ${group1LockAtLabel})` : ''}</li> : null}
+              {isGroup2Locked ? <li>Groupe 2{group2LockAtLabel ? ` (depuis ${group2LockAtLabel})` : ''}</li> : null}
+              {isPlayoffsLocked ? <li>Playoffs{playoffsLockAtLabel ? ` (depuis ${playoffsLockAtLabel})` : ''}</li> : null}
+            </ul>
+          </div>
         </div>
       ) : null}
 
@@ -552,8 +621,17 @@ function MrmPrediction() {
         </aside>
         <div className="container">
         <div className="container-first">
-          <div className="mrm-playoffs">
-            <h2 className="playoffs-title">PHASE FINALE</h2>
+          <div className={`mrm-playoffs ${isPlayoffsLocked ? 'mrm-playoffs--locked' : ''}`}>
+            <div className="mrm-prediction-playoffs-head">
+              <h2 className="playoffs-title">PHASE FINALE</h2>
+              <div className="mrm-prediction-hint-slot">
+                <p className="mrm-prediction-hint">
+                  {isPlayoffsLocked
+                    ? 'Les playoffs sont verrouilles : les vainqueurs ne sont plus modifiables.'
+                    : 'Choisis les vainqueurs des demies, petite finale et finale.'}
+                </p>
+              </div>
+            </div>
             <div className="bracket">
               <div className="bracket-labels">
                 <div className="round-label">DEMI-FINALE 1</div>
@@ -569,31 +647,31 @@ function MrmPrediction() {
                     player={playerMap.get(s1Ids[0])}
                     winnerId={semi1Winner}
                     onPick={setSemi1Winner}
-                    pickable={canEdit}
+                    pickable={canEditPlayoffs}
                   />
                   <BracketPlayerButton
                     pid={s1Ids[1]}
                     player={playerMap.get(s1Ids[1])}
                     winnerId={semi1Winner}
                     onPick={setSemi1Winner}
-                    pickable={canEdit}
+                    pickable={canEditPlayoffs}
                   />
                 </div>
                 <div className="connector connector-left" />
-                <div className="match match-final">
+                <div className={`match match-final ${isPlayoffsLocked ? 'match-final--locked' : ''}`}>
                   <BracketPlayerButton
                     pid={finalistIds[0]}
                     player={finalistIds[0] ? playerMap.get(finalistIds[0]) : null}
                     winnerId={finalWinner}
                     onPick={setFinalWinner}
-                    pickable={canEdit && finalistIds[0] != null && finalistIds[1] != null}
+                    pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
                   />
                   <BracketPlayerButton
                     pid={finalistIds[1]}
                     player={finalistIds[1] ? playerMap.get(finalistIds[1]) : null}
                     winnerId={finalWinner}
                     onPick={setFinalWinner}
-                    pickable={canEdit && finalistIds[0] != null && finalistIds[1] != null}
+                    pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
                   />
                 </div>
                 <div className="connector connector-right" />
@@ -603,14 +681,14 @@ function MrmPrediction() {
                     player={playerMap.get(s2Ids[0])}
                     winnerId={semi2Winner}
                     onPick={setSemi2Winner}
-                    pickable={canEdit}
+                    pickable={canEditPlayoffs}
                   />
                   <BracketPlayerButton
                     pid={s2Ids[1]}
                     player={playerMap.get(s2Ids[1])}
                     winnerId={semi2Winner}
                     onPick={setSemi2Winner}
-                    pickable={canEdit}
+                    pickable={canEditPlayoffs}
                   />
                 </div>
               </div>
@@ -621,16 +699,16 @@ function MrmPrediction() {
                   <BracketPlayerButton
                     pid={petiteFinaleIds[0]}
                     player={petiteFinaleIds[0] ? playerMap.get(petiteFinaleIds[0]) : null}
-                    winnerId={petiteFinaleWinner}
-                    onPick={setPetiteFinaleWinner}
-                    pickable={canEdit && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                    winnerId={thirdPlaceWinner}
+                    onPick={setThirdPlaceWinner}
+                    pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
                   />
                   <BracketPlayerButton
                     pid={petiteFinaleIds[1]}
                     player={petiteFinaleIds[1] ? playerMap.get(petiteFinaleIds[1]) : null}
-                    winnerId={petiteFinaleWinner}
-                    onPick={setPetiteFinaleWinner}
-                    pickable={canEdit && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                    winnerId={thirdPlaceWinner}
+                    onPick={setThirdPlaceWinner}
+                    pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
                   />
                 </div>
               </div>
@@ -677,9 +755,13 @@ function MrmPrediction() {
               <h2 className="playoffs-title">PHASE DE GROUPES</h2>
               <div className="mrm-prediction-hint-slot">
                 <p className="mrm-prediction-hint">
-                  {isLocked
-                    ? 'Les pronostics sont verrouilles : le classement n’est plus modifiable.'
-                    : 'Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).'}
+                  {isGroup1Locked && isGroup2Locked
+                    ? 'Les groupes sont verrouilles : le classement n’est plus modifiable.'
+                    : isGroup1Locked
+                      ? 'Le groupe 1 est verrouille ; seul le groupe 2 reste modifiable.'
+                      : isGroup2Locked
+                        ? 'Le groupe 2 est verrouille ; seul le groupe 1 reste modifiable.'
+                        : 'Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).'}
                 </p>
               </div>
             </div>
@@ -691,7 +773,8 @@ function MrmPrediction() {
                 onOrderChange={setOrder1}
                 titleClassName="group-title-1"
                 groupTitle="GROUPE 1"
-                interactionsEnabled={canEdit}
+                interactionsEnabled={canEditGroup1}
+                isLocked={isGroup1Locked}
               />
               <SortableGroupTable
                 groupNum={2}
@@ -700,113 +783,13 @@ function MrmPrediction() {
                 onOrderChange={setOrder2}
                 titleClassName="group-title-2"
                 groupTitle="GROUPE 2"
-                interactionsEnabled={canEdit}
+                interactionsEnabled={canEditGroup2}
+                isLocked={isGroup2Locked}
               />
             </div>
           </div>
         </div>
 
-        <div className="section-divider" />
-
-        <div className="container-third">
-          <div className="rules-panel">
-            <div className="rules-panel-header">QUALIFICATION</div>
-            <div className="rules-panel-body">
-              <div className="rules-row">
-                <i className="bi bi-bar-chart-fill rules-icon" />
-                <span>
-                  La qualification aux MRM s&apos;effectue en finissant parmi les 16 plus hauts élos au{' '}
-                  <Link to="/ranked" className="rules-link">
-                    classement Ranked MSF
-                  </Link>{' '}
-                  à la toute fin de la saison de MCSR Ranked
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-people-fill rules-icon" />
-                <span>
-                  Les 16 participant·e·s sont alors placé·e·s dans deux groupes de 8 de manière aléatoire, à la suite
-                  d&apos;un <span className="rules-highlight">tirage au sort</span> effectué en stream la semaine
-                  suivante
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-calendar-event rules-icon" />
-                <span>
-                  La phase de groupes se déroulera le samedi <span className="rules-highlight">23/05/2026</span> à la
-                  suite des playoffs internationaux, afin de permettre à chacun de pouvoir suivre les deux tournois
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rules-panel">
-            <div className="rules-panel-header">PHASE DE GROUPES</div>
-            <div className="rules-panel-body">
-              <div className="rules-row">
-                <i className="bi bi-calendar-check rules-icon" />
-                <span>
-                  Le <span className="rules-highlight">groupe 1</span> commence à jouer le samedi à{' '}
-                  <span className="rules-highlight">14h</span> (fuseau horaire de Paris) et le{' '}
-                  <span className="rules-highlight">groupe 2</span> enchaine à{' '}
-                  <span className="rules-highlight">16h</span> le même jour
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-stopwatch rules-icon" />
-                <span>
-                  Chaque groupe consiste en <span className="rules-highlight">6 seeds</span> qui s&apos;enchainent,
-                  avec une limite de temps de <span className="rules-highlight">15 minutes par seed</span>, avec une
-                  pause de 5 minutes entre les seeds 3 et 4
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-database rules-icon" />
-                <span>
-                  Chaque joueur·se accumule des points en fonction de son placement sur chaque seed :{' '}
-                  <span className="rules-highlight">10-8-6-5-4-3-2-1</span>, et 0 points pour ceux·celles n&apos;étant
-                  pas en mesure de finir
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-person-x-fill rules-icon" />
-                <span>
-                  Après la 3ème seed, les 2 joueur·se·s ayant accumulé le moins de points seront éliminé·e·s, suivi·e·s
-                  de 2 après la seed 4, un·e après la seed 5 et un·e après la 6
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-check-circle-fill rules-icon" />
-                <span>
-                  Les deux participant·e·s restant·e·s de chaque groupe se qualifient pour la phase finale des MRM qui
-                  se déroulera le lendemain soit le <span className="rules-highlight">24/05/2026</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rules-panel">
-            <div className="rules-panel-header">PHASE FINALE</div>
-            <div className="rules-panel-body">
-              <div className="rules-row">
-                <i className="bi bi-intersect rules-icon" />
-                <span>
-                  Le premier de chaque groupe affronte le second du groupe suivant en demi-finale lors d&apos;un{' '}
-                  <span className="rules-highlight">BO5</span> (une seed de chaque type) à partir de{' '}
-                  <span className="rules-highlight">14h</span>
-                </span>
-              </div>
-              <div className="rules-row">
-                <i className="bi bi-trophy-fill rules-icon" />
-                <span>
-                  Les finalistes s&apos;affrontent après une pause de 10 minutes suivant la deuxième demi-finale, lors
-                  d&apos;un <span className="rules-highlight">BO7</span> comprenant une seed de chaque type{' '}
-                  <span className="rules-highlight">+ 1 BT et 1 RP</span> si nécessaire
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </div>
