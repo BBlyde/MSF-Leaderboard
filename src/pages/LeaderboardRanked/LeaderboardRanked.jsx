@@ -54,12 +54,12 @@ function LeaderboardRanked() {
   }
 
   const formatTimeLeft = () => {
-    const targetDate = new Date('2026-05-02T02:00:00').getTime()
+    const targetDate = 1777507200 * 1000
     const now = new Date().getTime()
     const difference = targetDate - now
 
     if (difference <= 0) {
-      return 'La saison est terminée'
+      return 'SAISON TERMINÉE'
     }
 
     const days = Math.floor(difference / (1000 * 60 * 60 * 24))
@@ -116,7 +116,7 @@ function LeaderboardRanked() {
         <div className="countdown">
           <p className="countdown-label">FIN DE SAISON 10</p>
           <div className="countdown-timer">{timeLeft}</div>
-          <p className="countdown-date">2 Mai 2026</p>
+          <p className="countdown-date">30 Avril 2026</p>
         </div>
 
         {loading && <div className="loading">Chargement du classement...</div>}
