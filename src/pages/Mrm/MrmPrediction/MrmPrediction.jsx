@@ -4,7 +4,8 @@ import {
   closestCenter,
   DndContext,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -34,6 +35,14 @@ const DEFAULT_LOCK_STATE = {
   playoffs: { locked: false, lockAt: null },
   serverNow: null,
 }
+const DEFAULT_FINISHED_STATE = {
+  group1: false,
+  group2: false,
+  semi1: false,
+  semi2: false,
+  thirdPlace: false,
+  final: false,
+}
 
 function normalizeLockEntry(rawLock, fallbackLocked = false, fallbackLockAt = null) {
   const raw = rawLock && typeof rawLock === 'object' ? rawLock : null
@@ -42,6 +51,160 @@ function normalizeLockEntry(rawLock, fallbackLocked = false, fallbackLockAt = nu
     locked: raw?.locked === true || fallbackLocked === true,
     lockAt: typeof lockAtCandidate === 'string' && lockAtCandidate.trim() !== '' ? lockAtCandidate : null,
   }
+}
+
+function normalizeFinishedState(rawFinished) {
+  const data = rawFinished && typeof rawFinished === 'object' ? rawFinished : {}
+  return {
+    group1: data.group1 === true || data.group1Finished === true,
+    group2: data.group2 === true || data.group2Finished === true,
+    semi1: data.semi1 === true || data.semi1Finished === true,
+    semi2: data.semi2 === true || data.semi2Finished === true,
+    thirdPlace: data.thirdPlace === true || data.thirdPlaceFinished === true,
+    final: data.final === true || data.finalFinished === true,
+  }
+}
+
+function normalizeOfficialState(rawOfficial) {
+  const data = rawOfficial && typeof rawOfficial === 'object' ? rawOfficial : null
+  if (!data) return null
+  return {
+    group1: Array.isArray(data.group1) ? data.group1 : null,
+    group2: Array.isArray(data.group2) ? data.group2 : null,
+    order1: Array.isArray(data.order1) ? data.order1 : null,
+    order2: Array.isArray(data.order2) ? data.order2 : null,
+    semi1Winner: data.semi1Winner ?? null,
+    semi2Winner: data.semi2Winner ?? null,
+    thirdPlaceWinner: data.thirdPlaceWinner ?? null,
+    finalWinner: data.finalWinner ?? null,
+  }
+}
+
+function buildBaselineLookup(baseline) {
+  const byUuid = new Map()
+  const byName = new Map()
+  baseline.forEach((p, i) => {
+    if (typeof p?.uuid === 'string' && p.uuid.trim() !== '') {
+      byUuid.set(p.uuid.trim().toLowerCase(), i)
+    }
+    if (typeof p?.name === 'string' && p.name.trim() !== '') {
+      byName.set(p.name.trim().toLowerCase(), i)
+    }
+  })
+  return { byUuid, byName }
+}
+
+function rankMapFromOrder(order, baselineLen) {
+  if (!Array.isArray(order) || order.length !== baselineLen) return {}
+  const seen = new Set()
+  const out = {}
+  for (let rank = 0; rank < order.length; rank += 1) {
+    const idx = order[rank]
+    if (!Number.isInteger(idx) || idx < 0 || idx >= baselineLen || seen.has(idx)) return {}
+    seen.add(idx)
+    out[idx] = rank
+  }
+  return out
+}
+
+function rankMapFromOfficialOrder(order, baselineLen, baselineLookup) {
+  if (!Array.isArray(order) || !baselineLookup) return {}
+  const out = {}
+  const used = new Set()
+  order.forEach((raw, rank) => {
+    let baselineIdx = null
+    if (Number.isInteger(raw) && raw >= 0 && raw < baselineLen) {
+      baselineIdx = raw
+    } else if (typeof raw === 'string') {
+      const normalized = raw.trim().toLowerCase()
+      if (/^g[12]:\d+$/.test(normalized)) {
+        const idx = Number(normalized.split(':')[1])
+        if (Number.isInteger(idx) && idx >= 0 && idx < baselineLen) baselineIdx = idx
+      }
+      if (baselineIdx == null && baselineLookup.byUuid.has(normalized)) baselineIdx = baselineLookup.byUuid.get(normalized)
+      if (baselineIdx == null && baselineLookup.byName.has(normalized)) baselineIdx = baselineLookup.byName.get(normalized)
+    } else if (raw && typeof raw === 'object') {
+      const candidates = rowIdentityCandidates(raw)
+      for (const c of candidates) {
+        if (baselineLookup.byUuid.has(c)) {
+          baselineIdx = baselineLookup.byUuid.get(c)
+          break
+        }
+        if (baselineLookup.byName.has(c)) {
+          baselineIdx = baselineLookup.byName.get(c)
+          break
+        }
+      }
+    }
+    if (baselineIdx == null || used.has(baselineIdx)) return
+    used.add(baselineIdx)
+    out[baselineIdx] = rank
+  })
+  return out
+}
+
+function rankMapFromOfficialGroupRows(rows, baselineLookup) {
+  if (!Array.isArray(rows) || !baselineLookup) return {}
+  const out = {}
+  const used = new Set()
+  rows.forEach((row, rank) => {
+    if (!row || typeof row !== 'object') return
+    let baselineIdx = null
+    const rawUuid = typeof row.uuid === 'string' ? row.uuid.trim().toLowerCase() : ''
+    const rawName = typeof row.name === 'string' ? row.name.trim().toLowerCase() : ''
+    if (rawUuid && baselineLookup.byUuid.has(rawUuid)) baselineIdx = baselineLookup.byUuid.get(rawUuid)
+    else if (rawName && baselineLookup.byName.has(rawName)) baselineIdx = baselineLookup.byName.get(rawName)
+    if (baselineIdx == null || used.has(baselineIdx)) return
+    used.add(baselineIdx)
+    out[baselineIdx] = rank
+  })
+  return out
+}
+
+function normalizeIdentity(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim().toLowerCase()
+}
+
+function rowIdentityCandidates(row) {
+  if (!row || typeof row !== 'object') return []
+  const candidates = [
+    row.uuid,
+    row.id,
+    row.playerId,
+    row.runnerId,
+    row.name,
+    row.runner,
+    row.playerName,
+    row.username,
+  ]
+  return candidates.map(normalizeIdentity).filter(Boolean)
+}
+
+function playerIdentityCandidates(player) {
+  if (!player || typeof player !== 'object') return []
+  return [player.uuid, player.name].map(normalizeIdentity).filter(Boolean)
+}
+
+function hasComparableOfficialRows(rows) {
+  if (!Array.isArray(rows)) return false
+  return rows.some((row) => rowIdentityCandidates(row).length > 0)
+}
+
+function resolveWinnerPid(rawWinner, pairIds, playerMap) {
+  if (rawWinner == null) return null
+  const candidate = String(rawWinner).trim()
+  if (candidate === '') return null
+  if (pairIds.includes(candidate)) return candidate
+  const needle = candidate.toLowerCase()
+  const byPair = pairIds.find((pid) => {
+    const p = playerMap.get(pid)
+    if (!p) return false
+    const uuid = typeof p.uuid === 'string' ? p.uuid.trim().toLowerCase() : ''
+    const name = typeof p.name === 'string' ? p.name.trim().toLowerCase() : ''
+    return (uuid && uuid === needle) || (name && name === needle)
+  })
+  return byPair ?? null
 }
 
 function mcHeadUrl(uuid) {
@@ -97,7 +260,7 @@ function formatLockDateLabel(lockAt) {
   }
 }
 
-function SortableGroupRow({ id, qualify, dragDisabled, children }) {
+function SortableGroupRow({ id, qualify, dragDisabled, resultClass = '', children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     disabled: dragDisabled,
@@ -108,6 +271,7 @@ function SortableGroupRow({ id, qualify, dragDisabled, children }) {
   }
   const rowClass = [
     qualify ? 'row-qualify' : '',
+    resultClass,
     dragDisabled ? 'mrm-sortable-row--locked' : 'mrm-sortable-row',
     isDragging ? 'mrm-sortable-row--dragging' : '',
   ]
@@ -135,9 +299,11 @@ function SortableGroupTable({
   groupTitle,
   interactionsEnabled,
   isLocked = false,
+  getRowResultClass = null,
 }) {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
   const sortableIds = useMemo(() => order.map((idx) => playerId(groupNum, idx)), [order, groupNum])
@@ -180,8 +346,16 @@ function SortableGroupTable({
                 {order.map((baselineIdx, rank) => {
                   const p = baseline[baselineIdx]
                   const sid = playerId(groupNum, baselineIdx)
+                  const resultClass =
+                    typeof getRowResultClass === 'function' ? getRowResultClass(baselineIdx, rank, p) : ''
                   return (
-                    <SortableGroupRow key={sid} id={sid} qualify={rank < 2} dragDisabled={!interactionsEnabled}>
+                    <SortableGroupRow
+                      key={sid}
+                      id={sid}
+                      qualify={rank < 2}
+                      dragDisabled={!interactionsEnabled}
+                      resultClass={resultClass}
+                    >
                       <td className="col-rank">{rank + 1}</td>
                       <td className="col-player">
                         <img src={mcHeadUrl(p.uuid)} alt="" className="player-head" />
@@ -207,7 +381,7 @@ function SortableGroupTable({
   )
 }
 
-function BracketPlayerButton({ pid, player, winnerId, onPick, pickable }) {
+function BracketPlayerButton({ pid, player, winnerId, onPick, pickable, comparisonClass = '' }) {
   const isWinner = pid != null && winnerId === pid
   const isTbd =
     pid == null ||
@@ -217,7 +391,7 @@ function BracketPlayerButton({ pid, player, winnerId, onPick, pickable }) {
     player.name === 'TBD'
   if (isTbd) {
     return (
-      <div className="player tbd">
+      <div className={['player', 'tbd', comparisonClass].filter(Boolean).join(' ')}>
         <img src={DEFAULT_HEAD} alt="" className="player-head" width={24} height={24} />
         <span>TBD</span>
       </div>
@@ -225,6 +399,7 @@ function BracketPlayerButton({ pid, player, winnerId, onPick, pickable }) {
   }
   const isLoser = winnerId != null && !isWinner
   const cls = ['player', 'mrm-match-pickable']
+  if (comparisonClass) cls.push(comparisonClass)
   if (isWinner) cls.push('mrm-match-winner')
   else if (isLoser) cls.push('mrm-match-loser')
   if (!pickable) cls.push('mrm-match-pickable--disabled')
@@ -260,7 +435,10 @@ function MrmPrediction() {
   const [finalWinner, setFinalWinner] = useState(null)
   const [hydrated, setHydrated] = useState(false)
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
+  const [isScoringOpen, setIsScoringOpen] = useState(false)
   const [lockInfo, setLockInfo] = useState(DEFAULT_LOCK_STATE)
+  const [finishedInfo, setFinishedInfo] = useState(DEFAULT_FINISHED_STATE)
+  const [officialInfo, setOfficialInfo] = useState(null)
 
   /** Payload JSON dernier aligné serveur / dernier POST réussi — pas de POST si identique à l’état courant. */
   const baselinePredictionPayloadRef = useRef(null)
@@ -271,6 +449,15 @@ function MrmPrediction() {
   const isGroup1Locked = isGlobalLocked || lockInfo.group1.locked === true
   const isGroup2Locked = isGlobalLocked || lockInfo.group2.locked === true
   const isPlayoffsLocked = isGlobalLocked || lockInfo.playoffs.locked === true
+  const groupsStatusText =
+    isGroup1Locked && isGroup2Locked
+      ? 'Les groupes sont verrouilles : le classement n’est plus modifiable.'
+      : isGroup1Locked
+        ? 'Le groupe 1 est verrouille ; seul le groupe 2 reste modifiable.'
+        : isGroup2Locked
+          ? 'Le groupe 2 est verrouille ; seul le groupe 1 reste modifiable.'
+          : 'Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).'
+  const groupsBorderColor = isGroup1Locked || isGroup2Locked ? '#6a6a6a' : '#86CE34'
 
   const globalLockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.global.lockAt), [lockInfo.global.lockAt])
   const group1LockAtLabel = useMemo(() => formatLockDateLabel(lockInfo.group1.lockAt), [lockInfo.group1.lockAt])
@@ -320,19 +507,6 @@ function MrmPrediction() {
   useEffect(() => {
     if (!authChecked) return
 
-    if (!discordUser) {
-      captureBaselineAfterHydrateRef.current = false
-      baselinePredictionPayloadRef.current = null
-      setOrder1(Array.from({ length: g1.length }, (_, i) => i))
-      setOrder2(Array.from({ length: g2.length }, (_, i) => i))
-      setSemi1Winner(null)
-      setSemi2Winner(null)
-      setThirdPlaceWinner(null)
-      setFinalWinner(null)
-      setHydrated(true)
-      return
-    }
-
     baselinePredictionPayloadRef.current = null
     captureBaselineAfterHydrateRef.current = false
     setHydrated(false)
@@ -343,10 +517,12 @@ function MrmPrediction() {
 
       try {
         const res = await fetch(mrmPredictionApiUrl, { credentials: 'include' })
-        const data = res.ok ? await res.json() : {}
+        const data = await res.json().catch(() => ({}))
         console.log('data', data)
         if (!cancelled) {
           const rawLocks = data?.locks && typeof data.locks === 'object' ? data.locks : {}
+          setFinishedInfo(normalizeFinishedState(data?.finished ?? data?.scoringPhases))
+          setOfficialInfo(normalizeOfficialState(data?.official))
           setLockInfo({
             global: normalizeLockEntry(rawLocks.global, data?.locked === true, data?.lockAt),
             group1: normalizeLockEntry(
@@ -367,10 +543,10 @@ function MrmPrediction() {
             serverNow: typeof data?.serverNow === 'string' ? data.serverNow : null,
           })
         }
-        const pred = data?.prediction
+        const pred = discordUser && data?.prediction && typeof data.prediction === 'object' ? data.prediction : null
         if (cancelled) return
 
-        if (pred && typeof pred === 'object') {
+        if (pred) {
           const o1 = reconcileOrder(g1.length, pred.order1)
           const o2 = reconcileOrder(g2.length, pred.order2)
           setOrder1(o1)
@@ -406,6 +582,8 @@ function MrmPrediction() {
         }
       } catch {
         if (!cancelled) {
+          setFinishedInfo(DEFAULT_FINISHED_STATE)
+          setOfficialInfo(null)
           setOrder1(defaultOrder1)
           setOrder2(defaultOrder2)
           setSemi1Winner(null)
@@ -522,6 +700,8 @@ function MrmPrediction() {
     g2.forEach((p, i) => m.set(playerId(2, i), p))
     return m
   }, [g1, g2])
+  const g1Lookup = useMemo(() => buildBaselineLookup(g1), [g1])
+  const g2Lookup = useMemo(() => buildBaselineLookup(g2), [g2])
 
   const s1Ids = useMemo(() => semi1PairIds(order1, order2), [order1, order2])
   const s2Ids = useMemo(() => semi2PairIds(order1, order2), [order1, order2])
@@ -537,6 +717,46 @@ function MrmPrediction() {
     return loser1 && loser2 ? [loser1, loser2] : [null, null]
   }, [s1Ids, s2Ids, semi1Winner, semi2Winner])
 
+  const officialGroup1Ranks = useMemo(() => {
+    if (!finishedInfo.group1) return {}
+    const fromOrder = rankMapFromOrder(officialInfo?.order1, g1.length)
+    if (Object.keys(fromOrder).length > 0) return fromOrder
+    const fromFlexibleOrder = rankMapFromOfficialOrder(officialInfo?.order1, g1.length, g1Lookup)
+    if (Object.keys(fromFlexibleOrder).length > 0) return fromFlexibleOrder
+    return rankMapFromOfficialGroupRows(officialInfo?.group1, g1Lookup)
+  }, [finishedInfo.group1, officialInfo, g1.length, g1Lookup])
+
+  const officialGroup2Ranks = useMemo(() => {
+    if (!finishedInfo.group2) return {}
+    const fromOrder = rankMapFromOrder(officialInfo?.order2, g2.length)
+    if (Object.keys(fromOrder).length > 0) return fromOrder
+    const fromFlexibleOrder = rankMapFromOfficialOrder(officialInfo?.order2, g2.length, g2Lookup)
+    if (Object.keys(fromFlexibleOrder).length > 0) return fromFlexibleOrder
+    return rankMapFromOfficialGroupRows(officialInfo?.group2, g2Lookup)
+  }, [finishedInfo.group2, officialInfo, g2.length, g2Lookup])
+
+  const officialGroup1Rows = useMemo(
+    () => (Array.isArray(officialInfo?.group1) ? officialInfo.group1 : []),
+    [officialInfo],
+  )
+  const officialGroup2Rows = useMemo(
+    () => (Array.isArray(officialInfo?.group2) ? officialInfo.group2 : []),
+    [officialInfo],
+  )
+
+  const officialSemi1WinnerPid = useMemo(
+    () => resolveWinnerPid(officialInfo?.semi1Winner, s1Ids, playerMap),
+    [officialInfo, s1Ids, playerMap],
+  )
+  const officialSemi2WinnerPid = useMemo(
+    () => resolveWinnerPid(officialInfo?.semi2Winner, s2Ids, playerMap),
+    [officialInfo, s2Ids, playerMap],
+  )
+  const officialThirdPlaceWinnerPid = useMemo(
+    () => resolveWinnerPid(officialInfo?.thirdPlaceWinner, petiteFinaleIds.filter(Boolean), playerMap),
+    [officialInfo, petiteFinaleIds, playerMap],
+  )
+
   const runnerUpId = useMemo(() => {
     if (!finalWinner || finalistIds[0] == null) return null
     const [x, y] = finalistIds
@@ -548,6 +768,50 @@ function MrmPrediction() {
   const firstPlayer = finalWinner ? playerMap.get(finalWinner) : null
   const secondPlayer = runnerUpId ? playerMap.get(runnerUpId) : null
   const thirdPlayer = thirdPlaceWinner ? playerMap.get(thirdPlaceWinner) : null
+  const officialFinalWinnerPid = useMemo(
+    () => resolveWinnerPid(officialInfo?.finalWinner, finalistIds.filter(Boolean), playerMap),
+    [officialInfo, finalistIds, playerMap],
+  )
+
+  const groupRowResultClass = useCallback((baselineIdx, rank, rankMap, enabled, player, officialRows = []) => {
+    if (!enabled) return ''
+    const hasRankMap = rankMap && Object.keys(rankMap).length > 0
+    const hasComparableRows = hasComparableOfficialRows(officialRows)
+    if (!hasRankMap && !hasComparableRows) return 'mrm-group-row-result-neutral'
+    const officialRank = rankMap[baselineIdx]
+    if (typeof officialRank === 'number') {
+      const delta = Math.abs(rank - officialRank)
+      if (delta === 0) return 'mrm-group-row-result-correct'
+      if (delta === 1) return 'mrm-group-row-result-near'
+      return 'mrm-group-row-result-wrong'
+    }
+    const playerIds = playerIdentityCandidates(player)
+    if (playerIds.length === 0) return 'mrm-group-row-result-neutral'
+    const matchDeltas = []
+    officialRows.forEach((row, officialPos) => {
+      const rowIds = rowIdentityCandidates(row)
+      if (rowIds.length === 0) return
+      if (playerIds.some((id) => rowIds.includes(id))) {
+        matchDeltas.push(Math.abs(rank - officialPos))
+      }
+    })
+    if (matchDeltas.length === 0) return 'mrm-group-row-result-neutral'
+    const delta = Math.min(...matchDeltas)
+    if (delta === 0) return 'mrm-group-row-result-correct'
+    if (delta === 1) return 'mrm-group-row-result-near'
+    return 'mrm-group-row-result-wrong'
+  }, [])
+
+  const bracketResultClass = useCallback((pid, pickedWinner, officialWinner, enabled) => {
+    if (!enabled || pid == null) return ''
+    if (!officialWinner) return 'mrm-match-result-neutral'
+    if (pickedWinner === officialWinner) {
+      return pid === officialWinner ? 'mrm-match-result-correct' : 'mrm-match-result-neutral'
+    }
+    if (pickedWinner && pid === pickedWinner) return 'mrm-match-result-wrong-selected'
+    if (pid === officialWinner) return 'mrm-match-result-official'
+    return 'mrm-match-result-neutral'
+  }, [])
 
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container mrm-prediction">
@@ -592,6 +856,46 @@ function MrmPrediction() {
       <div className="section-divider" />
 
       <div className="mrm-prediction-content-wrap">
+        <aside className="mrm-prediction-scoring-shell" aria-label="Barème des pronostics">
+          <button
+            type="button"
+            className="mrm-prediction-scoring-toggle"
+            aria-expanded={isScoringOpen}
+            aria-controls="mrm-prediction-scoring-panel"
+            aria-label={isScoringOpen ? 'Masquer le bareme pronos' : 'Afficher le bareme pronos'}
+            onClick={() => setIsScoringOpen((open) => !open)}
+          >
+            {isScoringOpen ? 'Masquer le bareme' : 'Bareme pronos'}
+          </button>
+          <div
+            id="mrm-prediction-scoring-panel"
+            className={[
+              'mrm-prediction-scoring-panel',
+              isScoringOpen ? 'mrm-prediction-scoring-panel--open' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <div className="mrm-prediction-scoring-card">
+              <div className="mrm-prediction-scoring-header">BAREME PRONOS</div>
+              <div className="mrm-prediction-scoring-body">
+                <p className="mrm-prediction-scoring-section">Groupes</p>
+                <ul className="mrm-prediction-scoring-list">
+                  <li>Position exacte: +4</li>
+                  <li>Ecart d&apos;une place: +2</li>
+                  <li>Sinon: 0</li>
+                </ul>
+                <p className="mrm-prediction-scoring-section">Phase finale</p>
+                <ul className="mrm-prediction-scoring-list">
+                  <li>Semi 1 gagnant: +8</li>
+                  <li>Semi 2 gagnant: +8</li>
+                  <li>Petite finale gagnant: +8</li>
+                  <li>Finale gagnant: +14</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </aside>
         <aside className="mrm-prediction-leaderboard-shell">
           <button
             type="button"
@@ -648,6 +952,7 @@ function MrmPrediction() {
                     winnerId={semi1Winner}
                     onPick={setSemi1Winner}
                     pickable={canEditPlayoffs}
+                    comparisonClass={bracketResultClass(s1Ids[0], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
                   />
                   <BracketPlayerButton
                     pid={s1Ids[1]}
@@ -655,6 +960,7 @@ function MrmPrediction() {
                     winnerId={semi1Winner}
                     onPick={setSemi1Winner}
                     pickable={canEditPlayoffs}
+                    comparisonClass={bracketResultClass(s1Ids[1], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
                   />
                 </div>
                 <div className="connector connector-left" />
@@ -665,6 +971,12 @@ function MrmPrediction() {
                     winnerId={finalWinner}
                     onPick={setFinalWinner}
                     pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    comparisonClass={bracketResultClass(
+                      finalistIds[0],
+                      finalWinner,
+                      officialFinalWinnerPid,
+                      finishedInfo.final,
+                    )}
                   />
                   <BracketPlayerButton
                     pid={finalistIds[1]}
@@ -672,6 +984,12 @@ function MrmPrediction() {
                     winnerId={finalWinner}
                     onPick={setFinalWinner}
                     pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    comparisonClass={bracketResultClass(
+                      finalistIds[1],
+                      finalWinner,
+                      officialFinalWinnerPid,
+                      finishedInfo.final,
+                    )}
                   />
                 </div>
                 <div className="connector connector-right" />
@@ -682,6 +1000,7 @@ function MrmPrediction() {
                     winnerId={semi2Winner}
                     onPick={setSemi2Winner}
                     pickable={canEditPlayoffs}
+                    comparisonClass={bracketResultClass(s2Ids[0], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
                   />
                   <BracketPlayerButton
                     pid={s2Ids[1]}
@@ -689,6 +1008,7 @@ function MrmPrediction() {
                     winnerId={semi2Winner}
                     onPick={setSemi2Winner}
                     pickable={canEditPlayoffs}
+                    comparisonClass={bracketResultClass(s2Ids[1], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
                   />
                 </div>
               </div>
@@ -702,6 +1022,12 @@ function MrmPrediction() {
                     winnerId={thirdPlaceWinner}
                     onPick={setThirdPlaceWinner}
                     pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                    comparisonClass={bracketResultClass(
+                      petiteFinaleIds[0],
+                      thirdPlaceWinner,
+                      officialThirdPlaceWinnerPid,
+                      finishedInfo.thirdPlace,
+                    )}
                   />
                   <BracketPlayerButton
                     pid={petiteFinaleIds[1]}
@@ -709,6 +1035,12 @@ function MrmPrediction() {
                     winnerId={thirdPlaceWinner}
                     onPick={setThirdPlaceWinner}
                     pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                    comparisonClass={bracketResultClass(
+                      petiteFinaleIds[1],
+                      thirdPlaceWinner,
+                      officialThirdPlaceWinnerPid,
+                      finishedInfo.thirdPlace,
+                    )}
                   />
                 </div>
               </div>
@@ -754,14 +1086,8 @@ function MrmPrediction() {
             <div className="mrm-prediction-groups-head">
               <h2 className="playoffs-title">PHASE DE GROUPES</h2>
               <div className="mrm-prediction-hint-slot">
-                <p className="mrm-prediction-hint">
-                  {isGroup1Locked && isGroup2Locked
-                    ? 'Les groupes sont verrouilles : le classement n’est plus modifiable.'
-                    : isGroup1Locked
-                      ? 'Le groupe 1 est verrouille ; seul le groupe 2 reste modifiable.'
-                      : isGroup2Locked
-                        ? 'Le groupe 2 est verrouille ; seul le groupe 1 reste modifiable.'
-                        : 'Fais glisser les lignes pour définir ton classement (les deux premiers vont en demi-finales).'}
+                <p className="mrm-prediction-hint" style={{ borderBottom: `1px solid ${groupsBorderColor}` }}>
+                  {groupsStatusText}
                 </p>
               </div>
             </div>
@@ -775,6 +1101,15 @@ function MrmPrediction() {
                 groupTitle="GROUPE 1"
                 interactionsEnabled={canEditGroup1}
                 isLocked={isGroup1Locked}
+                getRowResultClass={(baselineIdx, rank, player) =>
+                  groupRowResultClass(
+                    baselineIdx,
+                    rank,
+                    officialGroup1Ranks,
+                    finishedInfo.group1,
+                    player,
+                    officialGroup1Rows,
+                  )}
               />
               <SortableGroupTable
                 groupNum={2}
@@ -785,6 +1120,15 @@ function MrmPrediction() {
                 groupTitle="GROUPE 2"
                 interactionsEnabled={canEditGroup2}
                 isLocked={isGroup2Locked}
+                getRowResultClass={(baselineIdx, rank, player) =>
+                  groupRowResultClass(
+                    baselineIdx,
+                    rank,
+                    officialGroup2Ranks,
+                    finishedInfo.group2,
+                    player,
+                    officialGroup2Rows,
+                  )}
               />
             </div>
           </div>

@@ -2,11 +2,21 @@ import { getJsonBody } from '../lib/getJsonBody.js'
 
 const DEFAULT_BACKEND_BASE_URL = 'https://back.mcsr-game.com'
 
-function backendPredictionUrl() {
+function backendBases() {
   const base = process.env.BACKEND_API_BASE_URL || DEFAULT_BACKEND_BASE_URL
   const normalizedBase = base.replace(/\/$/, '')
   const apiBase = normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`
+  return { normalizedBase, apiBase }
+}
+
+function backendPredictionUrl() {
+  const { apiBase } = backendBases()
   return `${apiBase}/prediction/mrm`
+}
+
+function backendFinishedUrl() {
+  const { apiBase } = backendBases()
+  return `${apiBase}/prediction/mrm/score/recompute`
 }
 
 /**
@@ -34,6 +44,49 @@ async function relayUpstreamResponse(upstream, res) {
   res.status(status).send(body)
 }
 
+/**
+ * @param {unknown} raw
+ */
+function normalizeFinished(raw) {
+  const data = raw && typeof raw === 'object' ? raw : {}
+  return {
+    group1: data.group1 === true || data.group1Finished === true,
+    group2: data.group2 === true || data.group2Finished === true,
+    semi1: data.semi1 === true || data.semi1Finished === true,
+    semi2: data.semi2 === true || data.semi2Finished === true,
+    thirdPlace: data.thirdPlace === true || data.thirdPlaceFinished === true,
+    final: data.final === true || data.finalFinished === true,
+  }
+}
+
+/**
+ * @param {unknown} raw
+ */
+function normalizeOfficial(raw) {
+  const data = raw && typeof raw === 'object' ? raw : null
+  if (!data) return null
+  const out = {}
+  if (Array.isArray(data.group1)) out.group1 = data.group1
+  if (Array.isArray(data.group2)) out.group2 = data.group2
+  if (Array.isArray(data.order1)) out.order1 = data.order1
+  if (Array.isArray(data.order2)) out.order2 = data.order2
+  if (data.semi1Winner != null) out.semi1Winner = data.semi1Winner
+  if (data.semi2Winner != null) out.semi2Winner = data.semi2Winner
+  if (data.thirdPlaceWinner != null) out.thirdPlaceWinner = data.thirdPlaceWinner
+  if (data.finalWinner != null) out.finalWinner = data.finalWinner
+  return out
+}
+
+async function maybeFetchJson(url, headers) {
+  try {
+    const res = await fetch(url, { method: 'GET', headers })
+    if (!res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
+    return null
+  }
+}
+
 export default async function handler(req, res) {
   const upstreamUrl = backendPredictionUrl()
 
@@ -43,7 +96,30 @@ export default async function handler(req, res) {
         method: 'GET',
         headers: upstreamHeaders(req),
       })
-      await relayUpstreamResponse(upstream, res)
+      const contentType = upstream.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        await relayUpstreamResponse(upstream, res)
+        return
+      }
+
+      const basePayload = (await upstream.json().catch(() => null)) ?? {}
+      const payload = basePayload && typeof basePayload === 'object' ? { ...basePayload } : {}
+
+      const headers = upstreamHeaders(req)
+      const finishedRaw = await maybeFetchJson(backendFinishedUrl(), headers)
+
+      const finished = normalizeFinished(finishedRaw)
+      const existingFinished =
+        payload.finished && typeof payload.finished === 'object' ? normalizeFinished(payload.finished) : {}
+      payload.finished = { ...existingFinished, ...finished }
+
+      const existingOfficial =
+        payload.official && typeof payload.official === 'object' ? normalizeOfficial(payload.official) : null
+      payload.official = {
+        ...(existingOfficial ?? {}),
+      }
+
+      res.status(upstream.status).json(payload)
     } catch (e) {
       console.error('[predictions/mrm] upstream GET error', e)
       res.status(502).json({ error: 'upstream_unreachable' })
