@@ -3,17 +3,6 @@ import groupe1 from './groupe1.json'
 import groupe2 from './groupe2.json'
 import { Link } from 'react-router-dom'
 
-const BRACKET_PLACEHOLDER_HEAD = 'https://mc-heads.net/avatar/0385/48'
-
-function BracketTbdSlot() {
-  return (
-    <div className="player tbd">
-      <img src={BRACKET_PLACEHOLDER_HEAD} alt="" className="player-head" width={24} height={24} />
-      <span>TBD</span>
-    </div>
-  )
-}
-
 function Mrm() {
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container">
@@ -35,32 +24,37 @@ function Mrm() {
               <div className="bracket-labels">
                 <div className="round-label">DEMI-FINALE 1</div>
                 <div className="round-label-spacer" />
-                <div className="round-label">FINALE</div>
+                <div className="round-label round-label-finale">FINALE</div>
                 <div className="round-label-spacer" />
                 <div className="round-label">DEMI-FINALE 2</div>
               </div>
               <div className="bracket-matches">
                 <div className="match">
-                  <BracketTbdSlot />
-                  <BracketTbdSlot />
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
                 </div>
                 <div className="connector connector-left" />
                 <div className="match match-final">
-                  <BracketTbdSlot />
-                  <BracketTbdSlot />
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
                 </div>
                 <div className="connector connector-right" />
                 <div className="match">
-                  <BracketTbdSlot />
-                  <BracketTbdSlot />
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
+                  <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
                 </div>
               </div>
-
-              <div className="connector-vertical" />
-              <div className="bracket-matches bracket-matches-third">
-                <div className="match match-third">
-                  <BracketTbdSlot />
-                  <BracketTbdSlot />
+              <div className="third-place-wrapper">
+                <svg className="third-place-connectors" width="546" height="95" viewBox="0 0 546 95" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M 173 0 L 174 88 L 198 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none"/>
+                  <path d="M 373 0 L 372 88 L 348 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none"/>
+                </svg>
+                <div className="bracket-third-place">
+                  <div className="round-label round-label-third">PETITE FINALE</div>
+                  <div className="match match-third-place">
+                    <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
+                    <div className="player tbd"><span>TBD</span><span className="player-score">0</span></div>
+                  </div>
                 </div>
               </div>
             </div>
