@@ -123,6 +123,7 @@
     height: 40px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 1rem;
     font-size: 0.875rem;
     font-weight: 600;
@@ -130,13 +131,20 @@
     border-bottom: 1px solid #2a2a2a;
 }
 
+.player-score {
+    color: #aaa;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 0.75rem;
+    font-style: normal;
+}
+
 .player:last-child {
     border-bottom: none;
 }
 
 .player.tbd {
-    color: #444;
-    font-style: italic;
+    color: #aaa;
 }
 
 .connector {
@@ -188,6 +196,46 @@
     height: 2px;
     background: #3a3a3a;
     transform: translateY(-50%);
+}
+
+.third-place-connectors {
+    display: block;
+}
+
+.third-place-wrapper {
+    position: relative;
+    width: 546px;
+}
+
+.third-place-connectors {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    pointer-events: none;
+}
+
+.bracket-third-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 8px;
+}
+
+.round-label-third {
+    margin-top: 0.3rem;
+}
+
+.round-label-finale {
+    color: #86CE34;
+    text-shadow: 0 0 8px rgba(134, 206, 52, 0.6);
+}
+
+.match-third-place {
+    min-width: 150px;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #161b22;
 }
 
 .mrm-podium {
