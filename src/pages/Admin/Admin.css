@@ -19,7 +19,7 @@
   flex-direction: column;
 }
 
-.match {
+.admin-match {
   display: flex;
   flex-direction: row;
   justify-content: center;

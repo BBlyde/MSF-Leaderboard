@@ -64,7 +64,7 @@ function Admin() {
       </form>
 
       <form action={formBracket} className='form-bracket'>
-        <div className='match'>
+        <div className='admin-match'>
           <span>DEMIE 1</span>
           <div className='player-name'>
             <input id="player1-semi-name" name="player1-semi-name" className='player-field' placeholder="Player 1" />
@@ -83,7 +83,7 @@ function Admin() {
           <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
         </div>
 
-        <div className='match'>
+        <div className='admin-match'>
           <span>DEMIE 2</span>
           <div className='player-name'>
             <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
@@ -102,7 +102,7 @@ function Admin() {
           <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
         </div>
 
-        <div className='match'>
+        <div className='admin-match'>
           <span>LOWER</span>
           <div className='player-name'>
             <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
@@ -121,7 +121,7 @@ function Admin() {
           <input type="number" min="0" max="2" id="player1-semi-score" placeholder='0'></input>
         </div>
 
-        <div className='match'>
+        <div className='admin-match'>
           <span>FINALE</span>
           <div className='player-name'>
             <input id="player3-semi-name" name="player3-semi-name" className='player-field' placeholder="Player 3" />
