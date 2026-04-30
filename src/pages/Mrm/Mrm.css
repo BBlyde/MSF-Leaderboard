@@ -84,7 +84,6 @@
 .bracket-labels {
     display: flex;
     align-items: center;
-    justify-content: center;
     margin-bottom: 0.4rem;
 }
 
@@ -105,7 +104,6 @@
 .bracket-matches {
     display: flex;
     align-items: stretch;
-    justify-content: center;
 }
 
 .match {
@@ -190,36 +188,6 @@
     height: 2px;
     background: #3a3a3a;
     transform: translateY(-50%);
-}
-
-.connector-vertical {
-    width: 2px;
-    height: 1.6rem;
-    background: #3a3a3a;
-    margin: 0 0 -1px;
-}
-
-.bracket-labels-third {
-    margin-top: 0.5rem;
-    margin-bottom: 0;
-}
-
-.bracket-matches-third {
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-}
-
-.match-spacer {
-    min-width: 150px;
-}
-
-.match-third {
-    min-width: 150px;
-    border: 1px solid #3a3a3a;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #161b22;
 }
 
 .mrm-podium {
@@ -608,10 +576,10 @@
 
 @media (max-width: 770px) {
     .mrm-playoffs {
-        align-items: center;
+        align-items: flex-start;
     }
 
     .mrm-playoffs .bracket {
-        align-items: center;
+        align-items: flex-start;
     }
 }
