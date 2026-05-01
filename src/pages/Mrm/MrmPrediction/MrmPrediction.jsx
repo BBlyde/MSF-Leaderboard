@@ -207,6 +207,80 @@ function resolveWinnerPid(rawWinner, pairIds, playerMap) {
   return byPair ?? null
 }
 
+/** @param {[number, number]} scores */
+function winnerPidFromBoNScores(scores, max, pid0, pid1) {
+  if (pid0 == null || pid1 == null) return null
+  const [a, b] = scores
+  if (a >= max && a > b) return pid0
+  if (b >= max && b > a) return pid1
+  return null
+}
+
+/** @param {[number, number]} scores */
+function tryIncrementBoN(scores, side, max) {
+  const [a, b] = scores
+  const decidedA = a >= max && a > b
+  const decidedB = b >= max && b > a
+
+  // Match déjà gagné : le vainqueur ne peut plus prendre de jeu ; le perdant peut
+  // monter tant qu’on n’arrive pas à un score impossible (ex. 2-2, 3-3).
+  if (decidedA) {
+    if (side === 0) return scores
+    const nb = b + 1
+    if (nb > max) return scores
+    if (a >= max && nb >= max) return scores
+    return [a, nb]
+  }
+  if (decidedB) {
+    if (side === 1) return scores
+    const na = a + 1
+    if (na > max) return scores
+    if (na >= max && b >= max) return scores
+    return [na, b]
+  }
+
+  const na = side === 0 ? a + 1 : a
+  const nb = side === 1 ? b + 1 : b
+  if (na >= max && nb >= max) return scores
+  return [na, nb]
+}
+
+/**
+ * Actions prioritaires pour un clic sur toute la ligne d’un joueur (même logique que l’ancien « clic chiffre »).
+ * À 2-1 / 3-2 : ligne du vainqueur → reset 0-0 ; ligne du perdant → inverse (1-2 / 2-3).
+ * @param {[number, number]} score
+ * @param {0 | 1} side joueur dont la ligne est cliquée
+ */
+function applyScoreDigitClick(score, side, max) {
+  const [a, b] = score
+  if (a === max && a > b) {
+    if (side === 0) return [0, 0]
+    if (side === 1 && b === max - 1) return [max - 1, max]
+  }
+  if (b === max && b > a) {
+    if (side === 1) return [0, 0]
+    if (side === 0 && a === max - 1) return [max, max - 1]
+  }
+  return score
+}
+
+/** @param {unknown} raw */
+function parseSavedPairScore(raw, max) {
+  if (!Array.isArray(raw) || raw.length !== 2) return null
+  const a = Number(raw[0])
+  const b = Number(raw[1])
+  if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a > max || b > max) return null
+  if (a >= max && b >= max) return null
+  return [a, b]
+}
+
+function minimalScoreFromWinnerPid(winnerPid, pid0, pid1, max) {
+  if (winnerPid == null || pid0 == null || pid1 == null) return [0, 0]
+  if (winnerPid === pid0) return [max, 0]
+  if (winnerPid === pid1) return [0, max]
+  return [0, 0]
+}
+
 function mcHeadUrl(uuid) {
   if (uuid != null && String(uuid).trim() !== '') {
     return `https://mc-heads.net/avatar/${uuid}/48`
@@ -381,8 +455,20 @@ function SortableGroupTable({
   )
 }
 
-function BracketPlayerButton({ pid, player, winnerId, onPick, pickable, comparisonClass = '' }) {
-  const isWinner = pid != null && winnerId === pid
+function BracketScoredPlayerRow({
+  pid,
+  player,
+  side,
+  scoreValue,
+  matchScores,
+  maxScore,
+  winnerPid,
+  pickable,
+  onIncrement,
+  onScoreDigit,
+  comparisonClass = '',
+}) {
+  const isWinner = pid != null && winnerPid === pid
   const isTbd =
     pid == null ||
     !player ||
@@ -394,27 +480,39 @@ function BracketPlayerButton({ pid, player, winnerId, onPick, pickable, comparis
       <div className={['player', 'tbd', comparisonClass].filter(Boolean).join(' ')}>
         <img src={DEFAULT_HEAD} alt="" className="player-head" width={24} height={24} />
         <span>TBD</span>
+        <span className="player-score">{scoreValue}</span>
       </div>
     )
   }
-  const isLoser = winnerId != null && !isWinner
-  const cls = ['player', 'mrm-match-pickable']
-  if (comparisonClass) cls.push(comparisonClass)
-  if (isWinner) cls.push('mrm-match-winner')
-  else if (isLoser) cls.push('mrm-match-loser')
-  if (!pickable) cls.push('mrm-match-pickable--disabled')
+  const isLoser = winnerPid != null && !isWinner
+  const rowCls = ['mrm-bracket-scored-row']
+  if (comparisonClass) rowCls.push(comparisonClass)
+  if (isWinner) rowCls.push('mrm-match-winner')
+  else if (isLoser) rowCls.push('mrm-match-loser')
+  if (!pickable) rowCls.push('mrm-bracket-scored-row--disabled')
+
+  const handleRowClick = () => {
+    if (!pickable || !Array.isArray(matchScores) || matchScores.length !== 2) return
+    const [a, b] = matchScores
+    const next = applyScoreDigitClick(matchScores, side, maxScore)
+    if (next[0] !== a || next[1] !== b) {
+      onScoreDigit(side)
+      return
+    }
+    onIncrement(side)
+  }
+
   return (
     <button
       type="button"
-      className={cls.join(' ')}
+      className={rowCls.filter(Boolean).join(' ')}
       disabled={!pickable}
-      onClick={() => {
-        if (!pickable || pid == null) return
-        onPick(isWinner ? null : pid)
-      }}
+      onClick={handleRowClick}
+      aria-label={`${player.name}, ${scoreValue} jeu(x)`}
     >
       <img src={mcHeadUrl(player.uuid)} alt="" className="player-head mrm-bracket-head" width={24} height={24} />
       <span className="mrm-bracket-name">{player.name}</span>
+      <span className="mrm-bracket-score-area player-score">{scoreValue}</span>
     </button>
   )
 }
@@ -429,10 +527,10 @@ function MrmPrediction() {
 
   const [order1, setOrder1] = useState(() => Array.from({ length: g1.length }, (_, i) => i))
   const [order2, setOrder2] = useState(() => Array.from({ length: g2.length }, (_, i) => i))
-  const [semi1Winner, setSemi1Winner] = useState(null)
-  const [semi2Winner, setSemi2Winner] = useState(null)
-  const [thirdPlaceWinner, setThirdPlaceWinner] = useState(null)
-  const [finalWinner, setFinalWinner] = useState(null)
+  const [semi1Score, setSemi1Score] = useState(() => [0, 0])
+  const [semi2Score, setSemi2Score] = useState(() => [0, 0])
+  const [thirdPlaceScore, setThirdPlaceScore] = useState(() => [0, 0])
+  const [finalScore, setFinalScore] = useState(() => [0, 0])
   const [hydrated, setHydrated] = useState(false)
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
   const [isScoringOpen, setIsScoringOpen] = useState(false)
@@ -444,6 +542,10 @@ function MrmPrediction() {
   const baselinePredictionPayloadRef = useRef(null)
   /** Après GET : une capture de baseline depuis l’état React (post-effets de réconciliation), puis false. */
   const captureBaselineAfterHydrateRef = useRef(false)
+  const semi1PairKeyRef = useRef('')
+  const semi2PairKeyRef = useRef('')
+  const thirdPairKeyRef = useRef('')
+  const finalPairKeyRef = useRef('')
 
   const isGlobalLocked = lockInfo.global.locked === true
   const isGroup1Locked = isGlobalLocked || lockInfo.group1.locked === true
@@ -469,22 +571,58 @@ function MrmPrediction() {
   const canEditPlayoffs = !isPlayoffsLocked && authChecked && discordUser != null && hydrated
   const canSyncPrediction = authChecked && discordUser != null && hydrated
 
+  const playerMap = useMemo(() => {
+    const m = new Map()
+    g1.forEach((p, i) => m.set(playerId(1, i), p))
+    g2.forEach((p, i) => m.set(playerId(2, i), p))
+    return m
+  }, [g1, g2])
+
+  const s1Ids = useMemo(() => semi1PairIds(order1, order2), [order1, order2])
+  const s2Ids = useMemo(() => semi2PairIds(order1, order2), [order1, order2])
+
+  const semi1Winner = useMemo(
+    () => winnerPidFromBoNScores(semi1Score, 2, s1Ids[0], s1Ids[1]),
+    [semi1Score, s1Ids[0], s1Ids[1]],
+  )
+  const semi2Winner = useMemo(
+    () => winnerPidFromBoNScores(semi2Score, 2, s2Ids[0], s2Ids[1]),
+    [semi2Score, s2Ids[0], s2Ids[1]],
+  )
+
+  const finalistIds = useMemo(() => {
+    const a = [semi1Winner, semi2Winner].filter(Boolean)
+    return a.length === 2 ? a : [null, null]
+  }, [semi1Winner, semi2Winner])
+
+  const finalWinner = useMemo(
+    () => winnerPidFromBoNScores(finalScore, 3, finalistIds[0], finalistIds[1]),
+    [finalScore, finalistIds[0], finalistIds[1]],
+  )
+
+  const petiteFinaleIds = useMemo(() => {
+    const loser1 = matchLoserId(s1Ids, semi1Winner)
+    const loser2 = matchLoserId(s2Ids, semi2Winner)
+    return loser1 && loser2 ? [loser1, loser2] : [null, null]
+  }, [s1Ids, s2Ids, semi1Winner, semi2Winner])
+
+  const thirdPlaceWinner = useMemo(
+    () => winnerPidFromBoNScores(thirdPlaceScore, 2, petiteFinaleIds[0], petiteFinaleIds[1]),
+    [thirdPlaceScore, petiteFinaleIds[0], petiteFinaleIds[1]],
+  )
+
   const predictionStateRef = useRef({
     order1,
     order2,
-    semi1Winner,
-    semi2Winner,
-    thirdPlaceWinner,
-    finalWinner,
+    semi1Score,
+    semi2Score,
+    thirdPlaceScore,
+    finalScore,
+    semi1Winner: null,
+    semi2Winner: null,
+    thirdPlaceWinner: null,
+    finalWinner: null,
   })
-  predictionStateRef.current = {
-    order1,
-    order2,
-    semi1Winner,
-    semi2Winner,
-    thirdPlaceWinner,
-    finalWinner,
-  }
 
   useEffect(() => {
     let cancelled = false
@@ -509,6 +647,10 @@ function MrmPrediction() {
 
     baselinePredictionPayloadRef.current = null
     captureBaselineAfterHydrateRef.current = false
+    semi1PairKeyRef.current = ''
+    semi2PairKeyRef.current = ''
+    thirdPairKeyRef.current = ''
+    finalPairKeyRef.current = ''
     setHydrated(false)
     let cancelled = false
     ;(async () => {
@@ -518,7 +660,6 @@ function MrmPrediction() {
       try {
         const res = await fetch(mrmPredictionApiUrl, { credentials: 'include' })
         const data = await res.json().catch(() => ({}))
-        console.log('data', data)
         if (!cancelled) {
           const rawLocks = data?.locks && typeof data.locks === 'object' ? data.locks : {}
           setFinishedInfo(normalizeFinishedState(data?.finished ?? data?.scoringPhases))
@@ -553,32 +694,57 @@ function MrmPrediction() {
           setOrder2(o2)
           const s1 = semi1PairIds(o1, o2)
           const s2 = semi2PairIds(o1, o2)
-          const w1 = pred.semi1Winner && s1.includes(pred.semi1Winner) ? pred.semi1Winner : null
-          const w2 = pred.semi2Winner && s2.includes(pred.semi2Winner) ? pred.semi2Winner : null
-          setSemi1Winner(w1)
-          setSemi2Winner(w2)
+          const sc1 =
+            parseSavedPairScore(pred.semi1Score, 2) ??
+            minimalScoreFromWinnerPid(
+              pred.semi1Winner && s1.includes(pred.semi1Winner) ? pred.semi1Winner : null,
+              s1[0],
+              s1[1],
+              2,
+            )
+          const sc2 =
+            parseSavedPairScore(pred.semi2Score, 2) ??
+            minimalScoreFromWinnerPid(
+              pred.semi2Winner && s2.includes(pred.semi2Winner) ? pred.semi2Winner : null,
+              s2[0],
+              s2[1],
+              2,
+            )
+          setSemi1Score(sc1)
+          setSemi2Score(sc2)
+          const w1 = winnerPidFromBoNScores(sc1, 2, s1[0], s1[1])
+          const w2 = winnerPidFromBoNScores(sc2, 2, s2[0], s2[1])
           const thirdPlaceFinalists = [matchLoserId(s1, w1), matchLoserId(s2, w2)].filter(Boolean)
+          const pf0 = thirdPlaceFinalists[0] ?? null
+          const pf1 = thirdPlaceFinalists[1] ?? null
           const thirdPlaceWinnerRaw = pred.thirdPlaceWinner ?? pred.petiteFinaleWinner ?? pred.smallFinalWinner ?? null
-          const tpw =
+          const tpResolved =
             thirdPlaceWinnerRaw &&
             thirdPlaceFinalists.length === 2 &&
             thirdPlaceFinalists.includes(thirdPlaceWinnerRaw)
               ? thirdPlaceWinnerRaw
               : null
-          setThirdPlaceWinner(tpw)
+          const scThird =
+            parseSavedPairScore(pred.thirdPlaceScore ?? pred.petiteFinaleScore, 2) ??
+            minimalScoreFromWinnerPid(tpResolved, pf0, pf1, 2)
+          setThirdPlaceScore(scThird)
           const finalists = [w1, w2].filter(Boolean)
-          const fw =
+          const f0 = finalists[0] ?? null
+          const f1 = finalists[1] ?? null
+          const fwResolved =
             pred.finalWinner && finalists.length === 2 && finalists.includes(pred.finalWinner)
               ? pred.finalWinner
               : null
-          setFinalWinner(fw)
+          const scFinal =
+            parseSavedPairScore(pred.finalScore, 3) ?? minimalScoreFromWinnerPid(fwResolved, f0, f1, 3)
+          setFinalScore(scFinal)
         } else {
           setOrder1(defaultOrder1)
           setOrder2(defaultOrder2)
-          setSemi1Winner(null)
-          setSemi2Winner(null)
-          setThirdPlaceWinner(null)
-          setFinalWinner(null)
+          setSemi1Score([0, 0])
+          setSemi2Score([0, 0])
+          setThirdPlaceScore([0, 0])
+          setFinalScore([0, 0])
         }
       } catch {
         if (!cancelled) {
@@ -586,10 +752,10 @@ function MrmPrediction() {
           setOfficialInfo(null)
           setOrder1(defaultOrder1)
           setOrder2(defaultOrder2)
-          setSemi1Winner(null)
-          setSemi2Winner(null)
-          setThirdPlaceWinner(null)
-          setFinalWinner(null)
+          setSemi1Score([0, 0])
+          setSemi2Score([0, 0])
+          setThirdPlaceScore([0, 0])
+          setFinalScore([0, 0])
         }
       } finally {
         if (!cancelled) {
@@ -607,33 +773,55 @@ function MrmPrediction() {
 
   useEffect(() => {
     if (!hydrated) return
-    const s1 = semi1PairIds(order1, order2)
-    const s2 = semi2PairIds(order1, order2)
-    setSemi1Winner((w) => (w && s1.includes(w) ? w : null))
-    setSemi2Winner((w) => (w && s2.includes(w) ? w : null))
-  }, [hydrated, order1, order2])
+    const k = `${s1Ids[0] ?? ''}|${s1Ids[1] ?? ''}`
+    if (semi1PairKeyRef.current === '') {
+      semi1PairKeyRef.current = k
+      return
+    }
+    if (semi1PairKeyRef.current !== k) {
+      semi1PairKeyRef.current = k
+      setSemi1Score([0, 0])
+    }
+  }, [hydrated, s1Ids[0], s1Ids[1]])
 
   useEffect(() => {
     if (!hydrated) return
-    const finalists = [semi1Winner, semi2Winner].filter(Boolean)
-    if (finalists.length !== 2) {
-      setFinalWinner(null)
+    const k = `${s2Ids[0] ?? ''}|${s2Ids[1] ?? ''}`
+    if (semi2PairKeyRef.current === '') {
+      semi2PairKeyRef.current = k
       return
     }
-    setFinalWinner((w) => (w && finalists.includes(w) ? w : null))
-  }, [hydrated, semi1Winner, semi2Winner])
+    if (semi2PairKeyRef.current !== k) {
+      semi2PairKeyRef.current = k
+      setSemi2Score([0, 0])
+    }
+  }, [hydrated, s2Ids[0], s2Ids[1]])
 
   useEffect(() => {
     if (!hydrated) return
-    const s1 = semi1PairIds(order1, order2)
-    const s2 = semi2PairIds(order1, order2)
-    const losers = [matchLoserId(s1, semi1Winner), matchLoserId(s2, semi2Winner)].filter(Boolean)
-    if (losers.length !== 2) {
-      setThirdPlaceWinner(null)
+    const k = `${petiteFinaleIds[0] ?? ''}|${petiteFinaleIds[1] ?? ''}`
+    if (thirdPairKeyRef.current === '') {
+      thirdPairKeyRef.current = k
       return
     }
-    setThirdPlaceWinner((w) => (w && losers.includes(w) ? w : null))
-  }, [hydrated, order1, order2, semi1Winner, semi2Winner])
+    if (thirdPairKeyRef.current !== k) {
+      thirdPairKeyRef.current = k
+      setThirdPlaceScore([0, 0])
+    }
+  }, [hydrated, petiteFinaleIds[0], petiteFinaleIds[1]])
+
+  useEffect(() => {
+    if (!hydrated) return
+    const k = `${finalistIds[0] ?? ''}|${finalistIds[1] ?? ''}`
+    if (finalPairKeyRef.current === '') {
+      finalPairKeyRef.current = k
+      return
+    }
+    if (finalPairKeyRef.current !== k) {
+      finalPairKeyRef.current = k
+      setFinalScore([0, 0])
+    }
+  }, [hydrated, finalistIds[0], finalistIds[1]])
 
   /** Après GET + effets de réconciliation : figer la baseline sans POST (état lu après le prochain tick). */
   useEffect(() => {
@@ -644,6 +832,10 @@ function MrmPrediction() {
       baselinePredictionPayloadRef.current = JSON.stringify({
         order1: s.order1,
         order2: s.order2,
+        semi1Score: s.semi1Score,
+        semi2Score: s.semi2Score,
+        thirdPlaceScore: s.thirdPlaceScore,
+        finalScore: s.finalScore,
         semi1Winner: s.semi1Winner ?? null,
         semi2Winner: s.semi2Winner ?? null,
         thirdPlaceWinner: s.thirdPlaceWinner ?? null,
@@ -652,7 +844,20 @@ function MrmPrediction() {
       captureBaselineAfterHydrateRef.current = false
     }, 0)
     return () => clearTimeout(t)
-  }, [hydrated, canSyncPrediction, order1, order2, semi1Winner, semi2Winner, thirdPlaceWinner, finalWinner])
+  }, [
+    hydrated,
+    canSyncPrediction,
+    order1,
+    order2,
+    semi1Score,
+    semi2Score,
+    thirdPlaceScore,
+    finalScore,
+    semi1Winner,
+    semi2Winner,
+    thirdPlaceWinner,
+    finalWinner,
+  ])
 
   useEffect(() => {
     if (!hydrated || !canSyncPrediction) return
@@ -661,6 +866,10 @@ function MrmPrediction() {
     const payload = {
       order1,
       order2,
+      semi1Score,
+      semi2Score,
+      thirdPlaceScore,
+      finalScore,
       semi1Winner: semi1Winner ?? null,
       semi2Winner: semi2Winner ?? null,
       thirdPlaceWinner: thirdPlaceWinner ?? null,
@@ -692,30 +901,23 @@ function MrmPrediction() {
       })()
     }, 450)
     return () => clearTimeout(syncTimer)
-  }, [hydrated, canSyncPrediction, order1, order2, semi1Winner, semi2Winner, thirdPlaceWinner, finalWinner])
+  }, [
+    hydrated,
+    canSyncPrediction,
+    order1,
+    order2,
+    semi1Score,
+    semi2Score,
+    thirdPlaceScore,
+    finalScore,
+    semi1Winner,
+    semi2Winner,
+    thirdPlaceWinner,
+    finalWinner,
+  ])
 
-  const playerMap = useMemo(() => {
-    const m = new Map()
-    g1.forEach((p, i) => m.set(playerId(1, i), p))
-    g2.forEach((p, i) => m.set(playerId(2, i), p))
-    return m
-  }, [g1, g2])
   const g1Lookup = useMemo(() => buildBaselineLookup(g1), [g1])
   const g2Lookup = useMemo(() => buildBaselineLookup(g2), [g2])
-
-  const s1Ids = useMemo(() => semi1PairIds(order1, order2), [order1, order2])
-  const s2Ids = useMemo(() => semi2PairIds(order1, order2), [order1, order2])
-
-  const finalistIds = useMemo(() => {
-    const a = [semi1Winner, semi2Winner].filter(Boolean)
-    return a.length === 2 ? a : [null, null]
-  }, [semi1Winner, semi2Winner])
-
-  const petiteFinaleIds = useMemo(() => {
-    const loser1 = matchLoserId(s1Ids, semi1Winner)
-    const loser2 = matchLoserId(s2Ids, semi2Winner)
-    return loser1 && loser2 ? [loser1, loser2] : [null, null]
-  }, [s1Ids, s2Ids, semi1Winner, semi2Winner])
 
   const officialGroup1Ranks = useMemo(() => {
     if (!finishedInfo.group1) return {}
@@ -812,6 +1014,19 @@ function MrmPrediction() {
     if (pid === officialWinner) return 'mrm-match-result-official'
     return 'mrm-match-result-neutral'
   }, [])
+
+  predictionStateRef.current = {
+    order1,
+    order2,
+    semi1Score,
+    semi2Score,
+    thirdPlaceScore,
+    finalScore,
+    semi1Winner,
+    semi2Winner,
+    thirdPlaceWinner,
+    finalWinner,
+  }
 
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container mrm-prediction">
@@ -932,7 +1147,7 @@ function MrmPrediction() {
                 <p className="mrm-prediction-hint">
                   {isPlayoffsLocked
                     ? 'Les playoffs sont verrouilles : les vainqueurs ne sont plus modifiables.'
-                    : 'Choisis les vainqueurs des demies, petite finale et finale.'}
+                    : 'Demi-finales et petite finale en 2 manches gagnantes ; finale en 3.'}
                 </p>
               </div>
             </div>
@@ -940,37 +1155,52 @@ function MrmPrediction() {
               <div className="bracket-labels">
                 <div className="round-label">DEMI-FINALE 1</div>
                 <div className="round-label-spacer" />
-                <div className="round-label">FINALE</div>
+                <div className="round-label round-label-finale">FINALE</div>
                 <div className="round-label-spacer" />
                 <div className="round-label">DEMI-FINALE 2</div>
               </div>
               <div className="bracket-matches">
                 <div className="match">
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={s1Ids[0]}
                     player={playerMap.get(s1Ids[0])}
-                    winnerId={semi1Winner}
-                    onPick={setSemi1Winner}
+                    side={0}
+                    scoreValue={semi1Score[0]}
+                    matchScores={semi1Score}
+                    maxScore={2}
+                    winnerPid={semi1Winner}
                     pickable={canEditPlayoffs}
+                    onIncrement={(side) => setSemi1Score((s) => tryIncrementBoN(s, side, 2))}
+                    onScoreDigit={(side) => setSemi1Score((s) => applyScoreDigitClick(s, side, 2))}
                     comparisonClass={bracketResultClass(s1Ids[0], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
                   />
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={s1Ids[1]}
                     player={playerMap.get(s1Ids[1])}
-                    winnerId={semi1Winner}
-                    onPick={setSemi1Winner}
+                    side={1}
+                    scoreValue={semi1Score[1]}
+                    matchScores={semi1Score}
+                    maxScore={2}
+                    winnerPid={semi1Winner}
                     pickable={canEditPlayoffs}
+                    onIncrement={(side) => setSemi1Score((s) => tryIncrementBoN(s, side, 2))}
+                    onScoreDigit={(side) => setSemi1Score((s) => applyScoreDigitClick(s, side, 2))}
                     comparisonClass={bracketResultClass(s1Ids[1], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
                   />
                 </div>
                 <div className="connector connector-left" />
                 <div className={`match match-final ${isPlayoffsLocked ? 'match-final--locked' : ''}`}>
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={finalistIds[0]}
                     player={finalistIds[0] ? playerMap.get(finalistIds[0]) : null}
-                    winnerId={finalWinner}
-                    onPick={setFinalWinner}
+                    side={0}
+                    scoreValue={finalScore[0]}
+                    matchScores={finalScore}
+                    maxScore={3}
+                    winnerPid={finalWinner}
                     pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    onIncrement={(side) => setFinalScore((s) => tryIncrementBoN(s, side, 3))}
+                    onScoreDigit={(side) => setFinalScore((s) => applyScoreDigitClick(s, side, 3))}
                     comparisonClass={bracketResultClass(
                       finalistIds[0],
                       finalWinner,
@@ -978,12 +1208,17 @@ function MrmPrediction() {
                       finishedInfo.final,
                     )}
                   />
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={finalistIds[1]}
                     player={finalistIds[1] ? playerMap.get(finalistIds[1]) : null}
-                    winnerId={finalWinner}
-                    onPick={setFinalWinner}
+                    side={1}
+                    scoreValue={finalScore[1]}
+                    matchScores={finalScore}
+                    maxScore={3}
+                    winnerPid={finalWinner}
                     pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    onIncrement={(side) => setFinalScore((s) => tryIncrementBoN(s, side, 3))}
+                    onScoreDigit={(side) => setFinalScore((s) => applyScoreDigitClick(s, side, 3))}
                     comparisonClass={bracketResultClass(
                       finalistIds[1],
                       finalWinner,
@@ -994,54 +1229,79 @@ function MrmPrediction() {
                 </div>
                 <div className="connector connector-right" />
                 <div className="match">
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={s2Ids[0]}
                     player={playerMap.get(s2Ids[0])}
-                    winnerId={semi2Winner}
-                    onPick={setSemi2Winner}
+                    side={0}
+                    scoreValue={semi2Score[0]}
+                    matchScores={semi2Score}
+                    maxScore={2}
+                    winnerPid={semi2Winner}
                     pickable={canEditPlayoffs}
+                    onIncrement={(side) => setSemi2Score((s) => tryIncrementBoN(s, side, 2))}
+                    onScoreDigit={(side) => setSemi2Score((s) => applyScoreDigitClick(s, side, 2))}
                     comparisonClass={bracketResultClass(s2Ids[0], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
                   />
-                  <BracketPlayerButton
+                  <BracketScoredPlayerRow
                     pid={s2Ids[1]}
                     player={playerMap.get(s2Ids[1])}
-                    winnerId={semi2Winner}
-                    onPick={setSemi2Winner}
+                    side={1}
+                    scoreValue={semi2Score[1]}
+                    matchScores={semi2Score}
+                    maxScore={2}
+                    winnerPid={semi2Winner}
                     pickable={canEditPlayoffs}
+                    onIncrement={(side) => setSemi2Score((s) => tryIncrementBoN(s, side, 2))}
+                    onScoreDigit={(side) => setSemi2Score((s) => applyScoreDigitClick(s, side, 2))}
                     comparisonClass={bracketResultClass(s2Ids[1], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
                   />
                 </div>
               </div>
-
-              <div className="connector-vertical" />
-              <div className="bracket-matches bracket-matches-third">
-                <div className="match match-third">
-                  <BracketPlayerButton
-                    pid={petiteFinaleIds[0]}
-                    player={petiteFinaleIds[0] ? playerMap.get(petiteFinaleIds[0]) : null}
-                    winnerId={thirdPlaceWinner}
-                    onPick={setThirdPlaceWinner}
-                    pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
-                    comparisonClass={bracketResultClass(
-                      petiteFinaleIds[0],
-                      thirdPlaceWinner,
-                      officialThirdPlaceWinnerPid,
-                      finishedInfo.thirdPlace,
-                    )}
-                  />
-                  <BracketPlayerButton
-                    pid={petiteFinaleIds[1]}
-                    player={petiteFinaleIds[1] ? playerMap.get(petiteFinaleIds[1]) : null}
-                    winnerId={thirdPlaceWinner}
-                    onPick={setThirdPlaceWinner}
-                    pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
-                    comparisonClass={bracketResultClass(
-                      petiteFinaleIds[1],
-                      thirdPlaceWinner,
-                      officialThirdPlaceWinnerPid,
-                      finishedInfo.thirdPlace,
-                    )}
-                  />
+              <div className="third-place-wrapper">
+                <svg className="third-place-connectors" width="546" height="95" viewBox="0 0 546 95" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M 173 0 L 174 88 L 198 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none" />
+                  <path d="M 373 0 L 372 88 L 348 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none" />
+                </svg>
+                <div className="bracket-third-place">
+                  <div className="round-label round-label-third">PETITE FINALE</div>
+                  <div className="match match-third-place">
+                    <BracketScoredPlayerRow
+                      pid={petiteFinaleIds[0]}
+                      player={petiteFinaleIds[0] ? playerMap.get(petiteFinaleIds[0]) : null}
+                      side={0}
+                      scoreValue={thirdPlaceScore[0]}
+                      matchScores={thirdPlaceScore}
+                      maxScore={2}
+                      winnerPid={thirdPlaceWinner}
+                      pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                      onIncrement={(side) => setThirdPlaceScore((s) => tryIncrementBoN(s, side, 2))}
+                      onScoreDigit={(side) => setThirdPlaceScore((s) => applyScoreDigitClick(s, side, 2))}
+                      comparisonClass={bracketResultClass(
+                        petiteFinaleIds[0],
+                        thirdPlaceWinner,
+                        officialThirdPlaceWinnerPid,
+                        finishedInfo.thirdPlace,
+                      )}
+                    />
+                    <BracketScoredPlayerRow
+                      pid={petiteFinaleIds[1]}
+                      player={petiteFinaleIds[1] ? playerMap.get(petiteFinaleIds[1]) : null}
+                      side={1}
+                      scoreValue={thirdPlaceScore[1]}
+                      matchScores={thirdPlaceScore}
+                      maxScore={2}
+                      winnerPid={thirdPlaceWinner}
+                      pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                      onIncrement={(side) => setThirdPlaceScore((s) => tryIncrementBoN(s, side, 2))}
+                      onScoreDigit={(side) => setThirdPlaceScore((s) => applyScoreDigitClick(s, side, 2))}
+                      comparisonClass={bracketResultClass(
+                        petiteFinaleIds[1],
+                        thirdPlaceWinner,
+                        officialThirdPlaceWinnerPid,
+                        finishedInfo.thirdPlace,
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

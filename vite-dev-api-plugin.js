@@ -2,7 +2,7 @@ import discordStart from './api/auth/discord/index.js'
 import discordCallback from './api/auth/discord/callback.js'
 import authMe from './api/auth/me.js'
 import authLogout from './api/auth/logout.js'
-import predictionsMrmLeaderboard from './api/predictions/mrm-leaderboard.js'
+import { proxyBrowserApiToBackendAdapter } from './api/lib/backendApiProxy.js'
 import predictionsMrm from './api/predictions/mrm.js'
 
 function vercelResponseAdapter(nodeRes) {
@@ -80,20 +80,12 @@ export function devApiPlugin() {
               authLogout(req, vres)
               return
             }
-            if (
-              (pathname === '/api/predictions/mrm/leaderboard' ||
-                pathname === '/api/prediction/mrm/leaderboard') &&
-              req.method === 'GET'
-            ) {
-              await predictionsMrmLeaderboard(req, vres)
-              return
-            }
             if (pathname === '/api/predictions/mrm' || pathname === '/api/prediction/mrm') {
               await predictionsMrm(req, vres)
               return
             }
-            res.statusCode = 404
-            res.end('Not Found')
+            const pathWithQuery = pathname + (url.search || '')
+            await proxyBrowserApiToBackendAdapter(req, pathWithQuery, vres)
           } catch (err) {
             console.error('[msf-dev-api]', err)
             if (!res.headersSent) {

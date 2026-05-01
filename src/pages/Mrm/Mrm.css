@@ -198,6 +198,80 @@ button.player.mrm-match-pickable {
     font-weight: 700;
 }
 
+.match button.mrm-bracket-scored-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    width: 100%;
+    max-width: none;
+    height: 40px;
+    padding: 0 0.35rem 0 1rem;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #2a2a2a;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #d0d0d0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.2;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Plus spécifique que `.match button.mrm-bracket-scored-row` pour retirer la barre sous le 2e joueur */
+.match button.mrm-bracket-scored-row:last-child {
+    border-bottom: none;
+}
+
+.mrm-bracket-scored-row .mrm-bracket-head,
+.mrm-bracket-scored-row .player-head {
+    flex-shrink: 0;
+}
+
+.mrm-bracket-scored-row .mrm-bracket-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.mrm-bracket-scored-row .mrm-bracket-score-area {
+    flex-shrink: 0;
+    margin-left: 0;
+    min-width: 1.25rem;
+    text-align: right;
+}
+
+.mrm-bracket-scored-row--disabled {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.mrm-bracket-scored-row.mrm-match-winner {
+    background: rgba(134, 206, 52, 0.22) !important;
+    color: #f2ffe8;
+    /* Garder le séparateur gris entre les deux joueurs, pas le vert de .mrm-match-winner */
+    border-bottom-color: #2a2a2a !important;
+}
+
+.mrm-bracket-scored-row.mrm-match-winner .mrm-bracket-name {
+    color: #d4f5a0;
+    font-weight: 700;
+}
+
+.mrm-bracket-scored-row.mrm-match-winner .mrm-bracket-score-area {
+    color: #d4f5a0;
+}
+
+.match button.mrm-bracket-scored-row:focus-visible {
+    outline: 2px solid #86CE34;
+    outline-offset: -2px;
+    z-index: 1;
+}
+
 .player-score {
     color: #aaa;
     font-size: 0.8rem;
@@ -1225,7 +1299,6 @@ button.player.mrm-match-pickable {
 }
 
 .mrm-match-winner {
-    border-color: rgba(134, 206, 52, 0.75) !important;
     background: rgba(134, 206, 52, 0.15);
 }
 
@@ -1234,7 +1307,8 @@ button.player.mrm-match-pickable {
 }
 
 .match .player.mrm-match-result-correct,
-.match button.player.mrm-match-result-correct {
+.match button.player.mrm-match-result-correct,
+.match .mrm-bracket-scored-row.mrm-match-result-correct {
     background: rgba(88, 170, 78, 0.28) !important;
     color: #ecffe7;
     opacity: 1;
@@ -1243,14 +1317,17 @@ button.player.mrm-match-pickable {
 .match .player.mrm-match-result-wrong-selected,
 .match .player.mrm-match-result-official,
 .match button.player.mrm-match-result-wrong-selected,
-.match button.player.mrm-match-result-official {
+.match button.player.mrm-match-result-official,
+.match .mrm-bracket-scored-row.mrm-match-result-wrong-selected,
+.match .mrm-bracket-scored-row.mrm-match-result-official {
     background: rgba(173, 54, 54, 0.32) !important;
     color: #ffe8e8;
     opacity: 1;
 }
 
 .match .player.mrm-match-result-neutral,
-.match button.player.mrm-match-result-neutral {
+.match button.player.mrm-match-result-neutral,
+.match .mrm-bracket-scored-row.mrm-match-result-neutral {
     background: rgba(110, 110, 110, 0.24) !important;
     color: #e3e3e3;
     opacity: 1;

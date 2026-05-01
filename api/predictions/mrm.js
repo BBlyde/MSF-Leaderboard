@@ -1,22 +1,12 @@
+import { backendAbsoluteUrlFromBrowserRequest } from '../lib/backendApiProxy.js'
 import { getJsonBody } from '../lib/getJsonBody.js'
 
-const DEFAULT_BACKEND_BASE_URL = 'https://back.mcsr-game.com'
-
-function backendBases() {
-  const base = process.env.BACKEND_API_BASE_URL || DEFAULT_BACKEND_BASE_URL
-  const normalizedBase = base.replace(/\/$/, '')
-  const apiBase = normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`
-  return { normalizedBase, apiBase }
-}
-
 function backendPredictionUrl() {
-  const { apiBase } = backendBases()
-  return `${apiBase}/prediction/mrm`
+  return backendAbsoluteUrlFromBrowserRequest('/api/prediction/mrm')
 }
 
 function backendFinishedUrl() {
-  const { apiBase } = backendBases()
-  return `${apiBase}/prediction/mrm/score/recompute`
+  return backendAbsoluteUrlFromBrowserRequest('/api/prediction/mrm/score/recompute')
 }
 
 /**
