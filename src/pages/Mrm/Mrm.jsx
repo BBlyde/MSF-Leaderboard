@@ -22,9 +22,9 @@ function Mrm() {
           <span className="mrm-title">MSF RANKED MASTERS </span><span className='mrm-season'>S10</span>
         </div>
         <span className="mrm-subtitle">Résultats & explication du format</span>
-        <Link to="/prediction/mrm" className="mrm-prediction-link">
+        {/* <Link to="/prediction/mrm" className="mrm-prediction-link">
           Pronostics MRM
-        </Link>
+        </Link> */}
       </div>
 
       <div className="section-divider" />

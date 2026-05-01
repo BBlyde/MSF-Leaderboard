@@ -97,7 +97,7 @@ function Header() {
               <span className='nav-tournois-label'>TOURNOIS<span className='nav-tournois-arrow'>▾</span></span>
               <ul className='nav-dropdown'>
                 <li className='nav-mrm'><Link to="/mrm">MRM</Link></li>
-                <li className='nav-mrm-prediction'><Link to="/prediction/mrm">PRONOSTICS</Link></li>
+                {/* <li className='nav-mrm-prediction'><Link to="/prediction/mrm">PRONOSTICS</Link></li> */}
                 <li className='nav-tournament'><Link to="/tournament">ARCHIVES</Link></li>
               </ul>
             </li>
