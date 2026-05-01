@@ -22,10 +22,10 @@ function PlayerForm({ playerNumber }) {
   return (
     <div className='form-player'>
       <div className='player-name'>
-        <input id={`player-${playerNumber}-display`} name={`player-${playerNumber}-display`} className='player-field' placeholder={`Player ${playerNumber}`}/>
+        <input id={`player${playerNumber}-name`} name={`player${playerNumber}-name`} className='player-field' placeholder={`Player ${playerNumber}`}/>
       </div>
       <div className='player-id'>
-        <input id={`player-${playerNumber}-id`} name={`player-${playerNumber}-id`} className='player-field' placeholder={`ID ${playerNumber}`}/>
+        <input id={`player${playerNumber}-uuid`} name={`player${playerNumber}-uuid`} className='player-field' placeholder={`ID ${playerNumber}`}/>
       </div>
       {seedFields.map((seedNumber) => (
         <SeedSelect
@@ -33,14 +33,14 @@ function PlayerForm({ playerNumber }) {
           seedNumber={seedNumber}
           value={seeds[seedNumber]}
           onChange={handleSeedChange}
-          id={`player-${playerNumber}-seed-${seedNumber}`}
-          name={`player-${playerNumber}-seed-${seedNumber}`}
+          id={`player${playerNumber}-s${seedNumber}`}
+          name={`player${playerNumber}-s${seedNumber}`}
         />
       ))}
       <div className='total'>
         <input
-          id={`player-${playerNumber}-total`}
-          name={`player-${playerNumber}-total`}
+          id={`player${playerNumber}-total`}
+          name={`player${playerNumber}-total`}
           className='total-field'
           value={total}
           readOnly
