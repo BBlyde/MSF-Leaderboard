@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/api/((?!_fallback).*)",
-      "destination": "/api/_fallback?p=$1"
+      "source": "/api/:path*",
+      "destination": "/api/_fallback?path=:path*"
     },
     {
       "source": "/((?!api/).*)",
