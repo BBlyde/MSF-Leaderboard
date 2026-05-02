@@ -5,10 +5,6 @@ function backendPredictionUrl() {
   return backendAbsoluteUrlFromBrowserRequest('/api/prediction/mrm')
 }
 
-function backendFinishedUrl() {
-  return backendAbsoluteUrlFromBrowserRequest('/api/prediction/mrm/score/recompute')
-}
-
 /**
  * @param {import('http').IncomingMessage} req
  * @param {boolean} withJson
@@ -37,21 +33,6 @@ async function relayUpstreamResponse(upstream, res) {
 /**
  * @param {unknown} raw
  */
-function normalizeFinished(raw) {
-  const data = raw && typeof raw === 'object' ? raw : {}
-  return {
-    group1: data.group1 === true || data.group1Finished === true,
-    group2: data.group2 === true || data.group2Finished === true,
-    semi1: data.semi1 === true || data.semi1Finished === true,
-    semi2: data.semi2 === true || data.semi2Finished === true,
-    thirdPlace: data.thirdPlace === true || data.thirdPlaceFinished === true,
-    final: data.final === true || data.finalFinished === true,
-  }
-}
-
-/**
- * @param {unknown} raw
- */
 function normalizeOfficial(raw) {
   const data = raw && typeof raw === 'object' ? raw : null
   if (!data) return null
@@ -65,16 +46,6 @@ function normalizeOfficial(raw) {
   if (data.thirdPlaceWinner != null) out.thirdPlaceWinner = data.thirdPlaceWinner
   if (data.finalWinner != null) out.finalWinner = data.finalWinner
   return out
-}
-
-async function maybeFetchJson(url, headers) {
-  try {
-    const res = await fetch(url, { method: 'GET', headers })
-    if (!res.ok) return null
-    return await res.json().catch(() => null)
-  } catch {
-    return null
-  }
 }
 
 export default async function handler(req, res) {
@@ -94,14 +65,6 @@ export default async function handler(req, res) {
 
       const basePayload = (await upstream.json().catch(() => null)) ?? {}
       const payload = basePayload && typeof basePayload === 'object' ? { ...basePayload } : {}
-
-      const headers = upstreamHeaders(req)
-      const finishedRaw = await maybeFetchJson(backendFinishedUrl(), headers)
-
-      const finished = normalizeFinished(finishedRaw)
-      const existingFinished =
-        payload.finished && typeof payload.finished === 'object' ? normalizeFinished(payload.finished) : {}
-      payload.finished = { ...existingFinished, ...finished }
 
       const existingOfficial =
         payload.official && typeof payload.official === 'object' ? normalizeOfficial(payload.official) : null
