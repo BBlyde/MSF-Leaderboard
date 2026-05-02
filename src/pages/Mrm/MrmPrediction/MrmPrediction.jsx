@@ -618,10 +618,6 @@ function MrmPrediction() {
     semi2Score,
     thirdPlaceScore,
     finalScore,
-    semi1Winner: null,
-    semi2Winner: null,
-    thirdPlaceWinner: null,
-    finalWinner: null,
   })
 
   useEffect(() => {
@@ -836,10 +832,6 @@ function MrmPrediction() {
         semi2Score: s.semi2Score,
         thirdPlaceScore: s.thirdPlaceScore,
         finalScore: s.finalScore,
-        semi1Winner: s.semi1Winner ?? null,
-        semi2Winner: s.semi2Winner ?? null,
-        thirdPlaceWinner: s.thirdPlaceWinner ?? null,
-        finalWinner: s.finalWinner ?? null,
       })
       captureBaselineAfterHydrateRef.current = false
     }, 0)
@@ -853,10 +845,6 @@ function MrmPrediction() {
     semi2Score,
     thirdPlaceScore,
     finalScore,
-    semi1Winner,
-    semi2Winner,
-    thirdPlaceWinner,
-    finalWinner,
   ])
 
   useEffect(() => {
@@ -870,10 +858,6 @@ function MrmPrediction() {
       semi2Score,
       thirdPlaceScore,
       finalScore,
-      semi1Winner: semi1Winner ?? null,
-      semi2Winner: semi2Winner ?? null,
-      thirdPlaceWinner: thirdPlaceWinner ?? null,
-      finalWinner: finalWinner ?? null,
     }
     const payloadStr = JSON.stringify(payload)
     if (baselinePredictionPayloadRef.current !== null && payloadStr === baselinePredictionPayloadRef.current) {
@@ -910,10 +894,6 @@ function MrmPrediction() {
     semi2Score,
     thirdPlaceScore,
     finalScore,
-    semi1Winner,
-    semi2Winner,
-    thirdPlaceWinner,
-    finalWinner,
   ])
 
   const g1Lookup = useMemo(() => buildBaselineLookup(g1), [g1])
@@ -1022,10 +1002,6 @@ function MrmPrediction() {
     semi2Score,
     thirdPlaceScore,
     finalScore,
-    semi1Winner,
-    semi2Winner,
-    thirdPlaceWinner,
-    finalWinner,
   }
 
   return (
