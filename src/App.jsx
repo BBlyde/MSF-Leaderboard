@@ -8,7 +8,9 @@ import Home from './pages/Home'
 import LeaderboardRsg from './pages/LeaderboardRsg'
 import LeaderboardRanked from './pages/LeaderboardRanked'
 import Mrm from './pages/Mrm'
+import MrmPrediction from './pages/Mrm/MrmPrediction'
 import Tournament from './pages/Tournament'
+import Admin from './pages/Admin/Admin'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -20,20 +22,24 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <>
+    <div className="app-shell">
       <ScrollToTop />
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/rsg" element={<LeaderboardRsg />} />
-        <Route path="/ranked" element={<LeaderboardRanked />} />
-        <Route path="/mrm" element={<Mrm />} />
-        <Route path="/tournament" element={<Tournament />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/rsg" element={<LeaderboardRsg />} />
+          <Route path="/ranked" element={<LeaderboardRanked />} />
+          <Route path="/mrm" element={<Mrm />} />
+          <Route path="/prediction/mrm" element={<MrmPrediction />} />
+          <Route path="/tournament" element={<Tournament />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
       <Footer />
       <Analytics />
-    </>
+    </div>
   )
 }
 

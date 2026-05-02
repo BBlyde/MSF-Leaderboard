@@ -3,6 +3,17 @@ import groupe1 from './groupe1.json'
 import groupe2 from './groupe2.json'
 import { Link } from 'react-router-dom'
 
+const BRACKET_PLACEHOLDER_HEAD = 'https://mc-heads.net/avatar/0385/48'
+
+function BracketTbdSlot() {
+  return (
+    <div className="player tbd">
+      <img src={BRACKET_PLACEHOLDER_HEAD} alt="" className="player-head" width={24} height={24} />
+      <span>TBD</span>
+    </div>
+  )
+}
+
 function Mrm() {
   return (
     <div className="d-flex flex-column align-items-center text-white mrm-container">
@@ -11,10 +22,14 @@ function Mrm() {
           <span className="mrm-title">MSF RANKED MASTERS </span><span className='mrm-season'>S10</span>
         </div>
         <span className="mrm-subtitle">Résultats & explication du format</span>
+        {/* <Link to="/prediction/mrm" className="mrm-prediction-link">
+          Pronostics MRM
+        </Link> */}
       </div>
 
       <div className="section-divider" />
 
+      <div className="mrm-prediction-content-wrap">
       <div className="container">
         <div className="container-first">
           <div className="mrm-playoffs">
@@ -23,24 +38,37 @@ function Mrm() {
               <div className="bracket-labels">
                 <div className="round-label">DEMI-FINALE 1</div>
                 <div className="round-label-spacer" />
-                <div className="round-label">FINALE</div>
+                <div className="round-label round-label-finale">FINALE</div>
                 <div className="round-label-spacer" />
                 <div className="round-label">DEMI-FINALE 2</div>
               </div>
               <div className="bracket-matches">
                 <div className="match">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
                 <div className="connector connector-left" />
                 <div className="match match-final">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
                 </div>
                 <div className="connector connector-right" />
                 <div className="match">
-                  <div className="player tbd">TBD</div>
-                  <div className="player tbd">TBD</div>
+                  <BracketTbdSlot />
+                  <BracketTbdSlot />
+                </div>
+              </div>
+              <div className="third-place-wrapper">
+                <svg className="third-place-connectors" width="546" height="95" viewBox="0 0 546 95" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M 173 0 L 174 88 L 198 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none"/>
+                  <path d="M 373 0 L 372 88 L 348 88" stroke="#3a3a3a" strokeWidth="2" strokeDasharray="5 3" fill="none"/>
+                </svg>
+                <div className="bracket-third-place">
+                  <div className="round-label round-label-third">PETITE FINALE</div>
+                  <div className="match match-third-place">
+                    <BracketTbdSlot />
+                    <BracketTbdSlot />
+                  </div>
                 </div>
               </div>
             </div>
@@ -234,6 +262,8 @@ function Mrm() {
             </div>
           </div>
         </div>
+      </div>
+
       </div>
 
     </div>

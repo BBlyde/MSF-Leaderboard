@@ -1,35 +1,44 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import axios from 'axios'
 import './LeaderboardRsg.css'
 
+const SHEET_ID = '1Fgn-assiNCTxiGCUALdRX5i3wRrQHbwE7iSisWynj78'
+
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n')
+  if (lines.length < 2) return []
+
+  const headers = lines[0].split(',').map((h) => h.trim())
+  const data = []
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map((v) => v.trim())
+    if (values.length === headers.length) {
+      const obj = {}
+      headers.forEach((header, index) => {
+        obj[header.toLowerCase()] = values[index]
+      })
+      data.push(obj)
+    }
+  }
+
+  return data
+}
+
 function LeaderboardRsg() {
   const [players, setPlayers] = useState([])
-  const [filteredPlayers, setFilteredPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
 
-  const SHEET_ID = '1Fgn-assiNCTxiGCUALdRX5i3wRrQHbwE7iSisWynj78'
-
-  useEffect(() => {
-    fetchLeaderboard()
-  }, [])
-
-  useEffect(() => {
-    const filtered = players.filter(player =>
-      player.runner.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    setFilteredPlayers(filtered)
-  }, [searchTerm, players])
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true)
       const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`
-      
+
       const response = await axios.get(sheetUrl)
       const data = parseCSV(response.data)
-      
+
       setPlayers(data)
       setLoading(false)
     } catch (err) {
@@ -37,28 +46,22 @@ function LeaderboardRsg() {
       setError('Erreur de récupération du classement')
       setLoading(false)
     }
-  }
+  }, [])
 
-  const parseCSV = (csv) => {
-    const lines = csv.trim().split('\n')
-    if (lines.length < 2) return []
-    
-    const headers = lines[0].split(',').map(h => h.trim())
-    const data = []
-    
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim())
-      if (values.length === headers.length) {
-        const obj = {}
-        headers.forEach((header, index) => {
-          obj[header.toLowerCase()] = values[index]
-        })
-        data.push(obj)
-      }
-    }
-    
-    return data
-  }
+  useEffect(() => {
+    const id = setTimeout(() => {
+      void fetchLeaderboard()
+    }, 0)
+    return () => clearTimeout(id)
+  }, [fetchLeaderboard])
+
+  const filteredPlayers = useMemo(
+    () =>
+      players.filter((player) =>
+        player.runner.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [searchTerm, players],
+  )
 
   return (
     <div className="leaderboard-container">
@@ -68,7 +71,7 @@ function LeaderboardRsg() {
       </div>
 
       <div className="section-divider" />
-      
+
       {loading && <div className="loading">Chargement du classement...</div>}
       {error && <div className="error">{error}</div>}
 
@@ -106,13 +109,12 @@ function LeaderboardRsg() {
                 </thead>
                 <tbody>
                   {filteredPlayers.map((player, index) => (
-                    console.log(player),
-                      <tr 
-                        className="rank-row" 
-                        key={`${player.id || player.runner}-${searchTerm}`}
-                        onClick={() => window.open(`${player.lien}`, '_blank')}
-                        style={{ cursor: 'pointer', animationDelay: `${index * 30}ms` }}
-                      >
+                    <tr
+                      className="rank-row"
+                      key={`${player.id || player.runner}-${searchTerm}`}
+                      onClick={() => window.open(`${player.lien}`, '_blank')}
+                      style={{ cursor: 'pointer', animationDelay: `${index * 30}ms` }}
+                    >
                       <td className="rank">
                         <span className={`rank-number rank-${player.classement}`}>{player.classement}</span>
                       </td>
@@ -140,8 +142,8 @@ function LeaderboardRsg() {
             rel="noopener noreferrer"
           >
             <svg className="sheet-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path fill="#0F9D58" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
-              <path fill="#fff" d="M7 7h4v2H7zm0 4h4v2H7zm0 4h4v2H7zm6-8h4v2h-4zm0 4h4v2h-4zm0 4h4v2h-4z"/>
+              <path fill="#0F9D58" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
+              <path fill="#fff" d="M7 7h4v2H7zm0 4h4v2H7zm0 4h4v2H7zm6-8h4v2h-4zm0 4h4v2h-4zm0 4h4v2h-4z" />
             </svg>
             Basé sur la Google Sheet des sub 15 MSF, merci à Avocat & Lunet
           </a>
