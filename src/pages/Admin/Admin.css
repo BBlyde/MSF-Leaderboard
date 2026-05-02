@@ -1,0 +1,42 @@
+.group-section {
+  margin-bottom: 20px;
+}
+
+.form-player {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
+.player-field {
+  width: 100px;
+}
+
+.total-field {
+  width: 25px;
+  text-align: center;
+}
+
+.bracket-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-match {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.match-label {
+  font-weight: bold;
+  width: 80px;
+}
+
+.group-header {
+  display: flex;
+  font-weight: bold;
+  justify-content: space-between;
+}
