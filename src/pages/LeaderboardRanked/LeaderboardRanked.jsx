@@ -19,22 +19,22 @@ import diamond2Img from '../../assets/diamond2.png'
 import diamond3Img from '../../assets/diamond3.png'
 import netheriteImg from '../../assets/netherite.png'
 
-function formatTimeLeftStatic() {
-  const targetDate = new Date('2026-05-02T02:00:00').getTime()
-  const now = new Date().getTime()
-  const difference = targetDate - now
+const formatTimeLeft = () => {
+    const targetDate = 1777507200 * 1000
+    const now = new Date().getTime()
+    const difference = targetDate - now
 
-  if (difference <= 0) {
-    return 'La saison est terminée'
+    if (difference <= 0) {
+      return 'SAISON TERMINÉE'
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
+    const minutes = Math.floor((difference / 1000 / 60) % 60)
+    const seconds = Math.floor((difference / 1000) % 60)
+
+    return `${days}j ${hours}h ${minutes}m ${seconds}s`
   }
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
-  const minutes = Math.floor((difference / 1000 / 60) % 60)
-  const seconds = Math.floor((difference / 1000) % 60)
-
-  return `${days}j ${hours}h ${minutes}m ${seconds}s`
-}
 
 function LeaderboardRanked() {
   const [players, setPlayers] = useState([])
