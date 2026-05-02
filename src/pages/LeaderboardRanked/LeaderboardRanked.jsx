@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './LeaderboardRanked.css'
@@ -19,29 +19,13 @@ import diamond2Img from '../../assets/diamond2.png'
 import diamond3Img from '../../assets/diamond3.png'
 import netheriteImg from '../../assets/netherite.png'
 
-const formatTimeLeft = () => {
-    const targetDate = 1777507200 * 1000
-    const now = new Date().getTime()
-    const difference = targetDate - now
-
-    if (difference <= 0) {
-      return 'SAISON TERMINÉE'
-    }
-
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
-    const minutes = Math.floor((difference / 1000 / 60) % 60)
-    const seconds = Math.floor((difference / 1000) % 60)
-
-    return `${days}j ${hours}h ${minutes}m ${seconds}s`
-  }
-
 function LeaderboardRanked() {
   const [players, setPlayers] = useState([])
+  const [filteredPlayers, setFilteredPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [timeLeft, setTimeLeft] = useState(() => formatTimeLeftStatic())
+  const [timeLeft, setTimeLeft] = useState('')
 
   const API_URL = 'https://back.mcsr-game.com/leaderboard'
 
@@ -69,6 +53,43 @@ function LeaderboardRanked() {
     return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`
   }
 
+  const formatTimeLeft = () => {
+    const targetDate = 1777507200 * 1000
+    const now = new Date().getTime()
+    const difference = targetDate - now
+
+    if (difference <= 0) {
+      return 'SAISON TERMINÉE'
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
+    const minutes = Math.floor((difference / 1000 / 60) % 60)
+    const seconds = Math.floor((difference / 1000) % 60)
+
+    return `${days}j ${hours}h ${minutes}m ${seconds}s`
+  }
+
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [])
+
+  useEffect(() => {
+    setTimeLeft(formatTimeLeft())
+    const timer = setInterval(() => {
+      setTimeLeft(formatTimeLeft())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    const filtered = players.filter(player =>
+      (player.name || player.username || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    setFilteredPlayers(filtered)
+  }, [searchTerm, players])
+
   const fetchLeaderboard = async () => {
     try {
       setLoading(true)
@@ -76,34 +97,11 @@ function LeaderboardRanked() {
 
       setPlayers(response.data)
       setLoading(false)
-    } catch {
+    } catch (err) {
       setError("Erreur de récupération du classement, c'est la faute de phili..")
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      void fetchLeaderboard()
-    }, 0)
-    return () => clearTimeout(id)
-  }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(formatTimeLeftStatic())
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  const filteredPlayers = useMemo(
-    () =>
-      players.filter((player) =>
-        (player.name || player.username || '').toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [searchTerm, players],
-  )
 
   return (
     <div className="leaderboard-ranked">
