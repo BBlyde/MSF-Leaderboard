@@ -1,21 +1,7 @@
-const DEFAULT_BACKEND_BASE_URL = 'https://back.mcsr-game.com'
+import { backendTargetUrl } from './backendUrl.js'
 
-/**
- * Origine + chemin. La plupart des routes gardent /api/... sur l’upstream.
- * MSFAdminTournois est sur /tournament : /api/tournament/* → /tournament/*.
- */
 export function backendAbsoluteUrlFromBrowserRequest(pathWithQuery) {
-  const raw = (process.env.BACKEND_API_BASE_URL || DEFAULT_BACKEND_BASE_URL).replace(/\/$/, '')
-  const origin = raw.endsWith('/api') ? raw.slice(0, -4) : raw
-  let path = pathWithQuery.startsWith('/') ? pathWithQuery : `/${pathWithQuery}`
-  if (
-    path === '/api/tournament' ||
-    path.startsWith('/api/tournament/') ||
-    path.startsWith('/api/tournament?')
-  ) {
-    path = `/tournament${path.slice('/api/tournament'.length)}`
-  }
-  return `${origin}${path}`
+  return backendTargetUrl(pathWithQuery)
 }
 
 /**
@@ -61,7 +47,7 @@ function forwardRequestHeaders(req, bodyBuf) {
  * @returns {Promise<Response | null>}
  */
 export async function fetchBackendMirror(req, pathWithQuery) {
-  const targetUrl = backendAbsoluteUrlFromBrowserRequest(pathWithQuery)
+  const targetUrl = backendTargetUrl(pathWithQuery)
   const method = (req.method || 'GET').toUpperCase()
   let bodyBuf = Buffer.alloc(0)
   if (method !== 'GET' && method !== 'HEAD') {

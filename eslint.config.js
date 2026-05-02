@@ -35,7 +35,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.js', 'vite-dev-api-plugin.js'],
+    files: ['vite.config.js', 'vite-dev-api-plugin.js', 'middleware.js'],
     languageOptions: {
       globals: globals.node,
     },
