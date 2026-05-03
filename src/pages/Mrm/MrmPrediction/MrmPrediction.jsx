@@ -580,6 +580,13 @@ function MrmPrediction() {
     return m
   }, [g1, g2])
 
+  /** Tant que les deux groupes ne sont pas verrouillés, le bracket n’affiche pas les qualifiés (TBD). */
+  const showPlayoffBracketMatchups = isGroup1Locked && isGroup2Locked
+  const bracketRowPickable = canEditPlayoffs && showPlayoffBracketMatchups
+  const bracketDisplayPid = (id) => (showPlayoffBracketMatchups ? id : null)
+  const bracketDisplayPlayer = (id) =>
+    showPlayoffBracketMatchups && id != null ? playerMap.get(id) : null
+
   const s1Ids = useMemo(() => semi1PairIds(order1, order2), [order1, order2])
   const s2Ids = useMemo(() => semi2PairIds(order1, order2), [order1, order2])
 
@@ -969,9 +976,12 @@ function MrmPrediction() {
     return null
   }, [finalWinner, finalistIds])
 
-  const firstPlayer = finalWinner ? playerMap.get(finalWinner) : null
-  const secondPlayer = runnerUpId ? playerMap.get(runnerUpId) : null
-  const thirdPlayer = thirdPlaceWinner ? playerMap.get(thirdPlaceWinner) : null
+  const firstPlayer =
+    showPlayoffBracketMatchups && finalWinner ? playerMap.get(finalWinner) : null
+  const secondPlayer =
+    showPlayoffBracketMatchups && runnerUpId ? playerMap.get(runnerUpId) : null
+  const thirdPlayer =
+    showPlayoffBracketMatchups && thirdPlaceWinner ? playerMap.get(thirdPlaceWinner) : null
   const officialFinalWinnerPid = useMemo(
     () => resolveWinnerPid(officialInfo?.finalWinner, finalistIds.filter(Boolean), playerMap),
     [officialInfo, finalistIds, playerMap],
@@ -1149,7 +1159,9 @@ function MrmPrediction() {
                 <p className="mrm-prediction-hint">
                   {isPlayoffsLocked
                     ? 'Les playoffs sont verrouilles : les vainqueurs ne sont plus modifiables.'
-                    : 'Demi-finales et petite finale en 2 manches gagnantes ; finale en 3.'}
+                    : !showPlayoffBracketMatchups
+                      ? 'Les appariements s’affichent une fois les deux groupes verrouilles ; d’ici là, le bracket reste en TBD.'
+                      : 'Demi-finales et petite finale en 2 manches gagnantes ; finale en 3.'}
                 </p>
               </div>
             </div>
@@ -1164,65 +1176,75 @@ function MrmPrediction() {
               <div className="bracket-matches">
                 <div className="match">
                   <BracketScoredPlayerRow
-                    pid={s1Ids[0]}
-                    player={playerMap.get(s1Ids[0])}
+                    pid={bracketDisplayPid(s1Ids[0])}
+                    player={bracketDisplayPlayer(s1Ids[0])}
                     side={0}
                     scoreValue={semi1Score[0]}
                     matchScores={semi1Score}
                     maxScore={2}
                     winnerPid={semi1Winner}
-                    pickable={canEditPlayoffs}
+                    pickable={bracketRowPickable}
                     onIncrement={(side) => setSemi1Score((s) => tryIncrementBoN(s, side, 2))}
                     onScoreDigit={(side) => setSemi1Score((s) => applyScoreDigitClick(s, side, 2))}
-                    comparisonClass={bracketResultClass(s1Ids[0], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
+                    comparisonClass={bracketResultClass(
+                      bracketDisplayPid(s1Ids[0]),
+                      semi1Winner,
+                      officialSemi1WinnerPid,
+                      finishedInfo.semi1,
+                    )}
                   />
                   <BracketScoredPlayerRow
-                    pid={s1Ids[1]}
-                    player={playerMap.get(s1Ids[1])}
+                    pid={bracketDisplayPid(s1Ids[1])}
+                    player={bracketDisplayPlayer(s1Ids[1])}
                     side={1}
                     scoreValue={semi1Score[1]}
                     matchScores={semi1Score}
                     maxScore={2}
                     winnerPid={semi1Winner}
-                    pickable={canEditPlayoffs}
+                    pickable={bracketRowPickable}
                     onIncrement={(side) => setSemi1Score((s) => tryIncrementBoN(s, side, 2))}
                     onScoreDigit={(side) => setSemi1Score((s) => applyScoreDigitClick(s, side, 2))}
-                    comparisonClass={bracketResultClass(s1Ids[1], semi1Winner, officialSemi1WinnerPid, finishedInfo.semi1)}
+                    comparisonClass={bracketResultClass(
+                      bracketDisplayPid(s1Ids[1]),
+                      semi1Winner,
+                      officialSemi1WinnerPid,
+                      finishedInfo.semi1,
+                    )}
                   />
                 </div>
                 <div className="connector connector-left" />
                 <div className={`match match-final ${isPlayoffsLocked ? 'match-final--locked' : ''}`}>
                   <BracketScoredPlayerRow
-                    pid={finalistIds[0]}
-                    player={finalistIds[0] ? playerMap.get(finalistIds[0]) : null}
+                    pid={bracketDisplayPid(finalistIds[0])}
+                    player={bracketDisplayPlayer(finalistIds[0])}
                     side={0}
                     scoreValue={finalScore[0]}
                     matchScores={finalScore}
                     maxScore={3}
                     winnerPid={finalWinner}
-                    pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    pickable={bracketRowPickable && finalistIds[0] != null && finalistIds[1] != null}
                     onIncrement={(side) => setFinalScore((s) => tryIncrementBoN(s, side, 3))}
                     onScoreDigit={(side) => setFinalScore((s) => applyScoreDigitClick(s, side, 3))}
                     comparisonClass={bracketResultClass(
-                      finalistIds[0],
+                      bracketDisplayPid(finalistIds[0]),
                       finalWinner,
                       officialFinalWinnerPid,
                       finishedInfo.final,
                     )}
                   />
                   <BracketScoredPlayerRow
-                    pid={finalistIds[1]}
-                    player={finalistIds[1] ? playerMap.get(finalistIds[1]) : null}
+                    pid={bracketDisplayPid(finalistIds[1])}
+                    player={bracketDisplayPlayer(finalistIds[1])}
                     side={1}
                     scoreValue={finalScore[1]}
                     matchScores={finalScore}
                     maxScore={3}
                     winnerPid={finalWinner}
-                    pickable={canEditPlayoffs && finalistIds[0] != null && finalistIds[1] != null}
+                    pickable={bracketRowPickable && finalistIds[0] != null && finalistIds[1] != null}
                     onIncrement={(side) => setFinalScore((s) => tryIncrementBoN(s, side, 3))}
                     onScoreDigit={(side) => setFinalScore((s) => applyScoreDigitClick(s, side, 3))}
                     comparisonClass={bracketResultClass(
-                      finalistIds[1],
+                      bracketDisplayPid(finalistIds[1]),
                       finalWinner,
                       officialFinalWinnerPid,
                       finishedInfo.final,
@@ -1232,30 +1254,40 @@ function MrmPrediction() {
                 <div className="connector connector-right" />
                 <div className="match">
                   <BracketScoredPlayerRow
-                    pid={s2Ids[0]}
-                    player={playerMap.get(s2Ids[0])}
+                    pid={bracketDisplayPid(s2Ids[0])}
+                    player={bracketDisplayPlayer(s2Ids[0])}
                     side={0}
                     scoreValue={semi2Score[0]}
                     matchScores={semi2Score}
                     maxScore={2}
                     winnerPid={semi2Winner}
-                    pickable={canEditPlayoffs}
+                    pickable={bracketRowPickable}
                     onIncrement={(side) => setSemi2Score((s) => tryIncrementBoN(s, side, 2))}
                     onScoreDigit={(side) => setSemi2Score((s) => applyScoreDigitClick(s, side, 2))}
-                    comparisonClass={bracketResultClass(s2Ids[0], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
+                    comparisonClass={bracketResultClass(
+                      bracketDisplayPid(s2Ids[0]),
+                      semi2Winner,
+                      officialSemi2WinnerPid,
+                      finishedInfo.semi2,
+                    )}
                   />
                   <BracketScoredPlayerRow
-                    pid={s2Ids[1]}
-                    player={playerMap.get(s2Ids[1])}
+                    pid={bracketDisplayPid(s2Ids[1])}
+                    player={bracketDisplayPlayer(s2Ids[1])}
                     side={1}
                     scoreValue={semi2Score[1]}
                     matchScores={semi2Score}
                     maxScore={2}
                     winnerPid={semi2Winner}
-                    pickable={canEditPlayoffs}
+                    pickable={bracketRowPickable}
                     onIncrement={(side) => setSemi2Score((s) => tryIncrementBoN(s, side, 2))}
                     onScoreDigit={(side) => setSemi2Score((s) => applyScoreDigitClick(s, side, 2))}
-                    comparisonClass={bracketResultClass(s2Ids[1], semi2Winner, officialSemi2WinnerPid, finishedInfo.semi2)}
+                    comparisonClass={bracketResultClass(
+                      bracketDisplayPid(s2Ids[1]),
+                      semi2Winner,
+                      officialSemi2WinnerPid,
+                      finishedInfo.semi2,
+                    )}
                   />
                 </div>
               </div>
@@ -1268,36 +1300,36 @@ function MrmPrediction() {
                   <div className="round-label round-label-third">PETITE FINALE</div>
                   <div className="match match-third-place">
                     <BracketScoredPlayerRow
-                      pid={petiteFinaleIds[0]}
-                      player={petiteFinaleIds[0] ? playerMap.get(petiteFinaleIds[0]) : null}
+                      pid={bracketDisplayPid(petiteFinaleIds[0])}
+                      player={bracketDisplayPlayer(petiteFinaleIds[0])}
                       side={0}
                       scoreValue={thirdPlaceScore[0]}
                       matchScores={thirdPlaceScore}
                       maxScore={2}
                       winnerPid={thirdPlaceWinner}
-                      pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                      pickable={bracketRowPickable && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
                       onIncrement={(side) => setThirdPlaceScore((s) => tryIncrementBoN(s, side, 2))}
                       onScoreDigit={(side) => setThirdPlaceScore((s) => applyScoreDigitClick(s, side, 2))}
                       comparisonClass={bracketResultClass(
-                        petiteFinaleIds[0],
+                        bracketDisplayPid(petiteFinaleIds[0]),
                         thirdPlaceWinner,
                         officialThirdPlaceWinnerPid,
                         finishedInfo.thirdPlace,
                       )}
                     />
                     <BracketScoredPlayerRow
-                      pid={petiteFinaleIds[1]}
-                      player={petiteFinaleIds[1] ? playerMap.get(petiteFinaleIds[1]) : null}
+                      pid={bracketDisplayPid(petiteFinaleIds[1])}
+                      player={bracketDisplayPlayer(petiteFinaleIds[1])}
                       side={1}
                       scoreValue={thirdPlaceScore[1]}
                       matchScores={thirdPlaceScore}
                       maxScore={2}
                       winnerPid={thirdPlaceWinner}
-                      pickable={canEditPlayoffs && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
+                      pickable={bracketRowPickable && petiteFinaleIds[0] != null && petiteFinaleIds[1] != null}
                       onIncrement={(side) => setThirdPlaceScore((s) => tryIncrementBoN(s, side, 2))}
                       onScoreDigit={(side) => setThirdPlaceScore((s) => applyScoreDigitClick(s, side, 2))}
                       comparisonClass={bracketResultClass(
-                        petiteFinaleIds[1],
+                        bracketDisplayPid(petiteFinaleIds[1]),
                         thirdPlaceWinner,
                         officialThirdPlaceWinnerPid,
                         finishedInfo.thirdPlace,
