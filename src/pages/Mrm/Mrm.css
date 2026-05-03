@@ -297,15 +297,6 @@ button.player.mrm-match-pickable {
     border-bottom: none;
 }
 
-.player.tbd {
-    /* color: #888;
-    font-style: italic; */
-}
-
-.match .player.tbd .player-head {
-    /* opacity: 0.35; */
-}
-
 .connector {
     width: 48px;
     position: relative;
