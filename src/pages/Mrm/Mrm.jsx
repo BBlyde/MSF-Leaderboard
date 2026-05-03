@@ -8,8 +8,11 @@ const BRACKET_PLACEHOLDER_HEAD = 'https://mc-heads.net/avatar/0385/48'
 function BracketTbdSlot() {
   return (
     <div className="player tbd">
-      <img src={BRACKET_PLACEHOLDER_HEAD} alt="" className="player-head" width={24} height={24} />
-      <span>TBD</span>
+      <div className="player-info">
+        <img src={BRACKET_PLACEHOLDER_HEAD} alt="" className="player-head" width={24} height={24} />
+        <span>TBD</span>
+      </div>
+      <span className="player-score">0</span>
     </div>
   )
 }

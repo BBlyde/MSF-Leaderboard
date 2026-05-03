@@ -478,8 +478,10 @@ function BracketScoredPlayerRow({
   if (isTbd) {
     return (
       <div className={['player', 'tbd', comparisonClass].filter(Boolean).join(' ')}>
-        <img src={DEFAULT_HEAD} alt="" className="player-head" width={24} height={24} />
-        <span>TBD</span>
+        <div className="player-info">
+          <img src={DEFAULT_HEAD} alt="" className="player-head" width={24} height={24} />
+          <span>TBD</span>
+        </div>
         <span className="player-score">{scoreValue}</span>
       </div>
     )

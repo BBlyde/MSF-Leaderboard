@@ -153,6 +153,14 @@
     box-sizing: border-box;
 }
 
+.player .player-info {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    flex: 1;
+}
+
 .match .player-head,
 .match .mrm-bracket-head {
     width: 24px;
@@ -280,17 +288,22 @@ button.player.mrm-match-pickable {
     font-style: normal;
 }
 
+.player > .player-score {
+    margin-left: 0;
+    flex-shrink: 0;
+}
+
 .player:last-child {
     border-bottom: none;
 }
 
 .player.tbd {
-    color: #888;
-    font-style: italic;
+    /* color: #888;
+    font-style: italic; */
 }
 
 .match .player.tbd .player-head {
-    opacity: 0.35;
+    /* opacity: 0.35; */
 }
 
 .connector {
