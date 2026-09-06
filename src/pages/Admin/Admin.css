@@ -204,7 +204,7 @@
 
 .admin-lcq-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 0.6rem 1rem;
@@ -213,6 +213,28 @@
   letter-spacing: 2px;
   color: #fff;
   background: linear-gradient(90deg, #86CE34 0%, #102C30 75%) #102C30;
+}
+
+.admin-lcq-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-lcq-drop-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-lcq-drop-toggle input {
+  accent-color: #102C30;
+  cursor: pointer;
 }
 
 .admin-lcq-title-info {
@@ -291,6 +313,11 @@
 .admin-lcq-table th.col-pts {
   font-weight: 700;
   color: #fff;
+}
+
+.admin-lcq-table td.is-dropped {
+  text-decoration: line-through;
+  opacity: 0.4;
 }
 
 .admin-lcq-match-col {

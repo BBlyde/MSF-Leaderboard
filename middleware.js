@@ -15,10 +15,11 @@ export default async function middleware(request) {
   const method = request.method
   const tournamentWrite =
     url.pathname.startsWith('/api/tournament') && isWriteMethod(method)
+  const lcqWrite = url.pathname.startsWith('/api/lcq-mrm') && isWriteMethod(method)
   if (
     url.pathname.startsWith('/api/auth') ||
-    url.pathname.startsWith('/api/lcq-mrm') ||
     url.pathname.startsWith('/api/mcsr') ||
+    lcqWrite ||
     tournamentWrite ||
     NODE_ONLY.has(url.pathname)
   ) {

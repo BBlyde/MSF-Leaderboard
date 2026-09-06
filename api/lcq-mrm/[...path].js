@@ -8,12 +8,32 @@ export const config = {
 }
 
 function lcqPathWithQuery(req) {
-  const segments = req.query?.path
-  const sub = Array.isArray(segments) ? segments.join('/') : String(segments || '')
   const rawUrl = req.url || ''
-  const qIdx = rawUrl.indexOf('?')
-  const qs = qIdx >= 0 ? rawUrl.slice(qIdx) : ''
-  return `/api/lcq-mrm/${sub}${qs}`
+  let pathname = rawUrl
+  let qs = ''
+  try {
+    const parsed = new URL(rawUrl, 'http://local')
+    pathname = parsed.pathname
+    qs = parsed.search
+  } catch {
+    const qIdx = rawUrl.indexOf('?')
+    qs = qIdx >= 0 ? rawUrl.slice(qIdx) : ''
+    pathname = qIdx >= 0 ? rawUrl.slice(0, qIdx) : rawUrl
+  }
+
+  if (pathname.startsWith('/api/lcq-mrm/') && pathname.length > '/api/lcq-mrm/'.length) {
+    return `${pathname}${qs}`
+  }
+
+  const segments = req.query?.path
+  const sub = Array.isArray(segments)
+    ? segments.filter(Boolean).join('/')
+    : String(segments || '').replace(/^\/+/, '')
+  if (sub) {
+    return `/api/lcq-mrm/${sub}${qs}`
+  }
+
+  return `/api/lcq-mrm/${qs}`
 }
 
 export default async function handler(req, res) {

@@ -1,7 +1,64 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 const SEED_COUNT = 8
 const SEED_SLOTS = Array.from({ length: SEED_COUNT }, (_, i) => i + 1)
+
+function formatDurationMs(durationMs) {
+  if (durationMs == null || !Number.isFinite(Number(durationMs))) return '—'
+  const safe = Math.max(0, Math.round(Number(durationMs)))
+  const minutes = Math.floor(safe / 60_000)
+  const seconds = Math.floor((safe % 60_000) / 1000)
+  const millis = safe % 1000
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`
+}
+
+function buildDisplayRows(players, seedColumns, dropWorst) {
+  const rows = players.map((player) => {
+    let droppedMatchId = null
+    let totalMs = Number.isFinite(Number(player.totalMs)) ? Number(player.totalMs) : null
+    let totalLabel = player.total ?? '—'
+
+    if (dropWorst) {
+      const scored = []
+      for (const { matchId: mid } of seedColumns) {
+        if (mid == null) continue
+        const cell = player.matches?.[String(mid)]
+        if (cell && Number.isFinite(Number(cell.diffMs))) {
+          scored.push({ matchId: String(mid), diffMs: Number(cell.diffMs) })
+        }
+      }
+
+      if (scored.length >= 2) {
+        let worst = scored[0]
+        for (const item of scored) {
+          if (item.diffMs > worst.diffMs) worst = item
+        }
+        droppedMatchId = worst.matchId
+        totalMs = scored.reduce(
+          (sum, item) => sum + (item.matchId === droppedMatchId ? 0 : item.diffMs),
+          0,
+        )
+      } else if (scored.length === 1) {
+        totalMs = scored[0].diffMs
+      } else {
+        totalMs = 0
+      }
+      totalLabel = formatDurationMs(totalMs)
+    }
+
+    return { player, droppedMatchId, totalMs, totalLabel }
+  })
+
+  if (!dropWorst) return rows
+
+  return [...rows].sort((a, b) => {
+    const delta = (a.totalMs ?? Number.POSITIVE_INFINITY) - (b.totalMs ?? Number.POSITIVE_INFINITY)
+    if (delta !== 0) return delta
+    const nameA = a.player.nickname || a.player.uuid || ''
+    const nameB = b.player.nickname || b.player.uuid || ''
+    return nameA.localeCompare(nameB)
+  })
+}
 
 async function requestJson(url, options = {}) {
   const res = await fetch(url, {
@@ -27,6 +84,7 @@ function AdminLcq() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
+  const [dropWorst, setDropWorst] = useState(false)
 
   const eventPath = `/api/lcq-mrm/event/${encodeURIComponent(eventId.trim())}`
 
@@ -147,6 +205,10 @@ function AdminLcq() {
     seed,
     matchId: matchIds[seed - 1] ?? null,
   }))
+  const displayRows = useMemo(
+    () => buildDisplayRows(players, seedColumns, dropWorst),
+    [players, matchIds, dropWorst],
+  )
 
   return (
     <div className="admin-lcq">
@@ -190,9 +252,19 @@ function AdminLcq() {
         <div className="admin-lcq-scoreboard">
           <div className="admin-lcq-title">
             <span>Event {scoreboard.eventId}</span>
-            <span className="admin-lcq-title-info">
-              {matchIds.length}/{SEED_COUNT} seed(s)
-            </span>
+            <div className="admin-lcq-title-actions">
+              <label className="admin-lcq-drop-toggle">
+                <input
+                  type="checkbox"
+                  checked={dropWorst}
+                  onChange={(e) => setDropWorst(e.target.checked)}
+                />
+                Enlever le pire seed
+              </label>
+              <span className="admin-lcq-title-info">
+                {matchIds.length}/{SEED_COUNT} seed(s)
+              </span>
+            </div>
           </div>
 
           <div className="admin-lcq-table-wrap">
@@ -235,7 +307,7 @@ function AdminLcq() {
                     </td>
                   </tr>
                 ) : (
-                  players.map((player, i) => (
+                  displayRows.map(({ player, droppedMatchId, totalLabel }, i) => (
                     <tr key={player.uuid}>
                       <td className="col-rank">{i + 1}</td>
                       <td className="col-player">
@@ -245,13 +317,18 @@ function AdminLcq() {
                       </td>
                       {seedColumns.map(({ seed, matchId: mid }) => {
                         const cell = mid != null ? player.matches?.[String(mid)] : null
+                        const dropped = dropWorst && mid != null && String(mid) === droppedMatchId
                         return (
-                          <td key={seed} title={cell?.status || ''}>
+                          <td
+                            key={seed}
+                            className={dropped ? 'is-dropped' : undefined}
+                            title={dropped ? `${cell?.status || ''} (pire seed ignoré)` : cell?.status || ''}
+                          >
                             {cell?.diff ?? '—'}
                           </td>
                         )
                       })}
-                      <td className="col-pts">{player.total ?? '—'}</td>
+                      <td className="col-pts">{totalLabel}</td>
                     </tr>
                   ))
                 )}
