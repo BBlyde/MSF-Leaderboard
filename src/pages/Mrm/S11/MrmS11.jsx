@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './MrmS11.css'
 import { Link } from 'react-router-dom'
+import { TOURNAMENT_WS_URL, usePersistentWebSocket } from '../../../utils/usePersistentWebSocket'
 
 const BRACKET_PLACEHOLDER_UUID = '0385'
 const LCQ_SEED_COUNT = 8
@@ -11,7 +12,8 @@ function formatLcqDelta(value) {
     return value.trim()
   }
   const n = Number(value)
-  const totalSeconds = Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0
+  const ms = Number.isFinite(n) ? Math.max(0, n) : 0
+  const totalSeconds = Math.floor(ms / 1000)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
   return `+${minutes}:${String(seconds).padStart(2, '0')}`
@@ -78,35 +80,20 @@ function MrmS11() {
         applyLcqFromTournament(data, setLcqPlayers)
       })
       .catch((err) => console.error('Erreur chargement données MRM S11', err))
-
-    const ws = new WebSocket('wss://back.mcsr-game.com/ws/tournament')
-
-    ws.onopen = () => console.log('WebSocket connectée')
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        const hasLcq = Array.isArray(data?.lcq)
-        const hasS11Bracket = Boolean(data?.bracket?.round16)
-        if (!hasLcq && !hasS11Bracket) return
-        setMrmData((prev) => ({
-          ...(prev ?? {}),
-          ...data,
-          lcq: hasLcq ? data.lcq : prev?.lcq,
-          bracket: data.bracket ?? prev?.bracket,
-        }))
-        if (hasLcq) applyLcqFromTournament(data, setLcqPlayers)
-      } catch (err) {
-        console.error('WebSocket message MRM S11', err)
-      }
-    }
-
-    ws.onerror = (err) => console.error('WebSocket erreur MRM S11', err)
-
-    return () => {
-      ws.close()
-    }
   }, [])
+
+  usePersistentWebSocket(TOURNAMENT_WS_URL, (data) => {
+    const hasLcq = Array.isArray(data?.lcq)
+    const hasS11Bracket = Boolean(data?.bracket?.round16)
+    if (!hasLcq && !hasS11Bracket) return
+    setMrmData((prev) => ({
+      ...(prev ?? {}),
+      ...data,
+      lcq: hasLcq ? data.lcq : prev?.lcq,
+      bracket: data.bracket ?? prev?.bracket,
+    }))
+    if (hasLcq) applyLcqFromTournament(data, setLcqPlayers)
+  })
 
   const bracket = mrmData?.bracket
   const round16 = bracket?.round16 ?? []

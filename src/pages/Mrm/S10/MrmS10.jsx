@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './MrmS10.css'
 import { Link } from 'react-router-dom'
+import { TOURNAMENT_WS_URL, usePersistentWebSocket } from '../../../utils/usePersistentWebSocket'
 
 const BRACKET_PLACEHOLDER_UUID = '0385'
 
@@ -48,22 +49,11 @@ function MrmS10() {
       .then((data) => setMrmData(data))
       .catch((err) => console.error('Erreur chargement données MRM', err))
       .finally(() => setLoading(false))
-
-    const ws = new WebSocket('wss://back.mcsr-game.com/ws/tournament')
-
-    ws.onopen = () => console.log('WebSocket connectée')
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      if (!data?.bracket?.round16) setMrmData(data)
-    }
-
-    ws.onerror = (err) => console.error('WebSocket erreur MRM', err)
-
-    return () => {
-      ws.close()
-    }
   }, [])
+
+  usePersistentWebSocket(TOURNAMENT_WS_URL, (data) => {
+    if (!data?.bracket?.round16) setMrmData(data)
+  })
 
   const group1 = [...(mrmData?.group1 ?? [])].sort((a, b) => Number(b.total) - Number(a.total))
   const group2 = [...(mrmData?.group2 ?? [])].sort((a, b) => Number(b.total) - Number(a.total))

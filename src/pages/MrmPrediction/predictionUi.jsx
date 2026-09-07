@@ -216,13 +216,14 @@ export function placeholderPlayers(count, seedCount = 8) {
   })
 }
 
-/** LCQ seed delta: seconds → `+0:00`. */
+/** LCQ seed delta: milliseconds stored, display `+m:ss` (ties broken by leftover ms). */
 export function formatLcqDelta(value) {
   if (typeof value === 'string' && value.trim().startsWith('+')) {
     return value.trim()
   }
   const n = Number(value)
-  const totalSeconds = Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0
+  const ms = Number.isFinite(n) ? Math.max(0, n) : 0
+  const totalSeconds = Math.floor(ms / 1000)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
   return `+${minutes}:${String(seconds).padStart(2, '0')}`
