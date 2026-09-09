@@ -28,8 +28,7 @@ const DRAFTOUT_WHITELIST = [
   'ed8071e1-0d4c-4b59-9be0-222f93cae55b', // feynoox_
   '09a6081c-bafb-4686-ba7c-a968c3d76003', // BadClem
   'aa94d2e7-b998-4765-ac40-f5cace0eedd9', // ByPhantom
-  'd80dd226-1adf-4d22-9314-763ea512c540', // aquilo__ 
-  '854c6508-08f8-4bd9-b3e7-d428d199fd64', // inqchi
+  'd80dd226-1adf-4d22-9314-763ea512c540', // aquilo__
   '30a83701-c763-4fcf-aaa5-e9c0ce0fa46e', // Scranox
 ]
 
