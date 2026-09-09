@@ -29,10 +29,74 @@ function ScrollToTop() {
   return null
 }
 
+const SEO_BY_PATH = {
+  '/': {
+    title: 'Minecraft Speedrun France',
+    description: 'Classements Minecraft speedrun France, résultats de tournois MRM et pronostics de la communauté MSF.',
+  },
+  '/rsg': {
+    title: 'Classement any%',
+    description: 'Consultez le classement Any% Random Seed Glitchless des runners Minecraft Speedrun France.',
+  },
+  '/ranked': {
+    title: 'Classement MCSR Ranked',
+    description: 'Consultez le classement saisonnier MCSR Ranked des joueurs Minecraft Speedrun France.',
+  },
+  '/draftout': {
+    title: 'Classement Draftout',
+    description: 'Consultez le classement Draftout et les statistiques des runners de la communauté MSF.',
+  },
+  '/mrm': {
+    title: 'MSF Ranked Masters',
+    description: 'Suivez les groupes, scores et résultats des tournois MRM de Minecraft Speedrun France.',
+  },
+  '/prediction/mrm': {
+    title: 'Pronostics MRM',
+    description: 'Faites vos pronostics et consultez le classement de la communauté pour les tournois MRM.',
+  },
+  '/tournament': {
+    title: 'Archives des tournois',
+    description: 'Retrouvez les informations et résultats des anciens tournois Minecraft Speedrun France.',
+  },
+}
+
+function Seo() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    const metadata = SEO_BY_PATH[pathname] ?? {
+      title: 'Minecraft Speedrun France',
+      description: 'Classements et tournois Minecraft Speedrun France.',
+    }
+    const isAdmin = pathname.startsWith('/admin')
+    const canonicalUrl = `https://minecraftspeedrunfrance.fr${pathname}`
+
+    document.title = metadata.title
+    document.documentElement.lang = 'fr'
+
+    const setMeta = (selector, attribute, value) => {
+      const element = document.head.querySelector(selector)
+      if (element) element.setAttribute(attribute, value)
+    }
+
+    setMeta('meta[name="description"]', 'content', metadata.description)
+    setMeta('meta[property="og:title"]', 'content', metadata.title)
+    setMeta('meta[property="og:description"]', 'content', metadata.description)
+    setMeta('meta[property="og:url"]', 'content', canonicalUrl)
+    setMeta('meta[name="twitter:title"]', 'content', metadata.title)
+    setMeta('meta[name="twitter:description"]', 'content', metadata.description)
+    setMeta('meta[name="robots"]', 'content', isAdmin ? 'noindex, nofollow' : 'index, follow')
+    setMeta('link[rel="canonical"]', 'href', isAdmin ? 'https://minecraftspeedrunfrance.fr/' : canonicalUrl)
+  }, [pathname])
+
+  return null
+}
+
 function App() {
   return (
     <div className="app-shell">
       <ScrollToTop />
+      <Seo />
       <Header />
       <main className="app-main">
         <Routes>
