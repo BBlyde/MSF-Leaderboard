@@ -30,6 +30,8 @@ const DRAFTOUT_WHITELIST = [
   'aa94d2e7-b998-4765-ac40-f5cace0eedd9', // ByPhantom
   'd80dd226-1adf-4d22-9314-763ea512c540', // aquilo__
   '30a83701-c763-4fcf-aaa5-e9c0ce0fa46e', // Scranox
+  '658de3c4-4bae-4743-ba8c-2ea36fadc183', // Nyhru
+  'a3f61384-2986-4aef-b9ec-5fc799a0fa88', // SuneeToo
 ]
 
 export default async function handler(req, res) {
